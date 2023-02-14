@@ -18,12 +18,45 @@
     <Filter Include="src">
       <UniqueIdentifier>{46d69f1d-e709-42d3-850a-5ca049e224bd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Imgui">
+      <UniqueIdentifier>{04d1e51a-2ca2-46b2-906d-ba5a26e783f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Imgui\Includes">
+      <UniqueIdentifier>{418a54e5-833c-4934-8b9e-09438d37cf6b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Imgui\src">
+      <UniqueIdentifier>{449febcf-2256-4390-9893-cdd8a22d9ea4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Tutorial07.cpp">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="src\CTime.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui-docking-znly-docking\imgui.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui-docking-znly-docking\imgui_demo.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui-docking-znly-docking\imgui_draw.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui-docking-znly-docking\imgui_tables.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui-docking-znly-docking\imgui_widgets.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui-docking-znly-docking\backends\imgui_impl_dx11.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="Imgui\imgui-docking-znly-docking\backends\imgui_impl_win32.cpp">
+      <Filter>Imgui\src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\UserInterface.cpp">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,6 +74,36 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Include\Prerequisites.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Commons.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui-docking-znly-docking\imconfig.h">
+      <Filter>Imgui\Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui-docking-znly-docking\imgui.h">
+      <Filter>Imgui\Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui-docking-znly-docking\imgui_internal.h">
+      <Filter>Imgui\Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui-docking-znly-docking\imstb_rectpack.h">
+      <Filter>Imgui\Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui-docking-znly-docking\imstb_textedit.h">
+      <Filter>Imgui\Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui-docking-znly-docking\imstb_truetype.h">
+      <Filter>Imgui\Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui-docking-znly-docking\backends\imgui_impl_dx11.h">
+      <Filter>Imgui\src</Filter>
+    </ClInclude>
+    <ClInclude Include="Imgui\imgui-docking-znly-docking\backends\imgui_impl_win32.h">
+      <Filter>Imgui\src</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\UserInterface.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

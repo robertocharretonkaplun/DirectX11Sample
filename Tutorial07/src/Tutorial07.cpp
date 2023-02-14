@@ -1,38 +1,7 @@
 #include "Prerequisites.h"
+#include "Commons.h"
 #include "CTime.h"
-
-// Esta estructura esta encargada de almacenar la informacion que tendran nuestros objetos para
-// despues dibujarse en pantalla.
-struct SimpleVertex
-{
-  XMFLOAT3 Pos; // Posiciones
-  XMFLOAT2 Tex; // Coordenas de Textura
-
-};
-struct Camera
-{
-  XMMATRIX mView;
-  XMMATRIX mProjection;
-};
-
-struct CBChangesEveryFrame
-{
-  XMMATRIX mWorld; // Modelo / mesh / objeto 3D -> mMesh -> Posiciones, Rotaciones y escalas de nuestro objeto
-  XMFLOAT4 vMeshColor; // Texturas (R,G,B,A) (1,0,3,1)
-};
-
-struct Vector3
-{
-  float x = 0.0f;
-  float y = 0.0f;
-  float z = 0.0f;
-};
-
-struct Transform {
-  Vector3 Position;
-  Vector3 Rotation;
-  Vector3 Scale;
-};
+#include "UserInterface.h"
 
 //--------------------------------------------------------------------------------------
 // Global Variables
@@ -42,7 +11,7 @@ HINSTANCE                           g_hInst = nullptr;
 HWND                                g_hWnd = nullptr;
 D3D_DRIVER_TYPE                     g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL                   g_featureLevel = D3D_FEATURE_LEVEL_11_0;
-ID3D11Device*             g_pd3dDevice = nullptr;
+ID3D11Device* g_pd3dDevice = nullptr;
 ID3D11DeviceContext* g_DeviceContext = nullptr;
 IDXGISwapChain* g_pSwapChain = nullptr;
 ID3D11RenderTargetView* g_pRenderTargetView = nullptr;
@@ -64,12 +33,13 @@ XMMATRIX                            g_View;
 XMMATRIX                            g_Projection;
 XMFLOAT4                            g_vMeshColor(1, 1, 1, 1);
 Camera cam;
-
+ID3D11Texture2D* pBackBuffer = nullptr;
 Transform TCamera;
-Vector3 Position;
+Vector3f Position;
 float movementSpeed = 5.0f;
 CTime g_Time;
 float speed;
+UserInterface UI;
 
 //--------------------------------------------------------------------------------------
 // Forward declarations
@@ -105,9 +75,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     destroy();
     return 0;
   }
-
   // Initialize the time
   g_Time.init();
+  
+  UI.init(g_hWnd, g_pd3dDevice, g_DeviceContext);
 
   // Main message loop
   MSG msg = { 0 };
@@ -120,12 +91,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
     }
     else
     {
+
       g_Time.update();
       update(g_Time.m_deltaTime);
       Render();
+
     }
   }
-
+  
   destroy();
 
   return (int)msg.wParam;
@@ -209,9 +182,6 @@ HRESULT CompileShaderFromFile(char* szFileName, LPCSTR szEntryPoint, LPCSTR szSh
 HRESULT InitDevice()
 {
   HRESULT hr = S_OK;
-
-  //QueryPerformanceCounter(&lastTime);
-  //QueryPerformanceFrequency(&timerFrequency);
   RECT rc;
   GetClientRect(g_hWnd, &rc);
   unsigned int width = rc.right - rc.left;
@@ -266,7 +236,7 @@ HRESULT InitDevice()
     return hr;
 
   // Create a render target view
-  ID3D11Texture2D* pBackBuffer = nullptr;
+
   hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
   if (FAILED(hr))
     return hr;
@@ -341,30 +311,6 @@ HRESULT InitDevice()
   }
 
   // Define the input layout
-  /*
-  D3D11_INPUT_ELEMENT_DESC layout[] =
-  {
-      {
-        "POSITION",                     // Semantic Name -> Identificador para la estructra en el shader
-        0,                              // Semantic Index -> En caso de tener mas de un Semantic Name igual
-        DXGI_FORMAT_R32G32B32_FLOAT,    // Format -> Clasificador para el tipo de dato
-        0,                              // Input Slot -> Revisa si existe mas de un vertex buffer (Esto es importante a considerar cuando existan mas modelos)
-        D3D11_APPEND_ALIGNED_ELEMENT ,  // AlignedByOffset -> Administra el espacio en memoria y su ajuste idoneo
-        D3D11_INPUT_PER_VERTEX_DATA,    // InputSlotClassAt -> Se configura que tipo de dato se esta asignado
-        0                               // IntanceDataRate -> Actualizacion de datos
-      },
-      {
-        "TEXCOORD",
-        0,
-        DXGI_FORMAT_R32G32_FLOAT,
-        0,
-        D3D11_APPEND_ALIGNED_ELEMENT 12,
-        D3D11_INPUT_PER_VERTEX_DATA,
-        0
-      },
-  };
-  */
-
   std::vector<D3D11_INPUT_ELEMENT_DESC> Layout;
 
   D3D11_INPUT_ELEMENT_DESC position;
@@ -386,9 +332,6 @@ HRESULT InitDevice()
   texcoord.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
   texcoord.InstanceDataStepRate = 0;
   Layout.push_back(texcoord);
-
-
-  //UINT numElements = ARRAYSIZE(layout);
 
   // Create the input layout
   hr = g_pd3dDevice->CreateInputLayout(Layout.data(), Layout.size(), pVSBlob->GetBufferPointer(),
@@ -507,19 +450,6 @@ HRESULT InitDevice()
   g_DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   // Create the constant buffers
-  //bd.Usage = D3D11_USAGE_DEFAULT;
-  //bd.ByteWidth = sizeof(CBNeverChanges);
-  //bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  //bd.CPUAccessFlags = 0;
-  //hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pCBNeverChanges);
-  //if (FAILED(hr))
-  //  return hr;
-  //
-  //bd.ByteWidth = sizeof(CBChangeOnResize);
-  //hr = g_pd3dDevice->CreateBuffer(&bd, nullptr, &g_pCBChangeOnResize);
-  //if (FAILED(hr))
-  //  return hr;
-
   bd.Usage = D3D11_USAGE_DEFAULT;
   bd.ByteWidth = sizeof(Camera);
   bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -561,16 +491,6 @@ HRESULT InitDevice()
   XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
   XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
   g_View = XMMatrixLookAtLH(Eye, At, Up);
-
-
-
-  //CBNeverChanges cbNeverChanges;
-  //cbNeverChanges.mView = XMMatrixTranspose(g_View);
-  //g_DeviceContext->UpdateSubresource(g_pCBNeverChanges, 0, nullptr, &cbNeverChanges, 0, 0);
-
-  //CBChangeOnResize cbChangesOnResize;
-  //cbChangesOnResize.mProjection = XMMatrixTranspose(g_Projection);
-  //g_DeviceContext->UpdateSubresource(g_pCBChangeOnResize, 0, nullptr, &cbChangesOnResize, 0, 0);
 
   // Initialize the projection matrix
   g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
@@ -621,9 +541,18 @@ void Input(float deltaTime) {
 
 // Esta funcion esta encargada de actualizar la LOGICA del programa
 void update(float deltaTime) {
-
+  UI.update();
   Input(deltaTime);
+  
+  bool show_demo_window = true;
+  //ImGui::ShowDemoWindow(&show_demo_window);
+  ImGui::Begin("Test");
 
+  ImGui::End();
+  
+  ImGui::Begin("Test2");
+
+  ImGui::End();
   // Update variables that change once per frame
   //speed += .0002f;
   // Rotate cube around the origin
@@ -632,11 +561,6 @@ void update(float deltaTime) {
   cb.mWorld = XMMatrixTranspose(g_World);
   cb.vMeshColor = g_vMeshColor;
   // Update Data
-  /*XMVECTOR Eye = XMVectorSet(0.0f, TCamera.Position.x, TCamera.Position.y, 0.0f);
-  XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-  XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-  g_View = XMMatrixLookAtLH(Eye, At, Up);*/
-  //cam.mView = XMMatrixTranspose(g_View);
   // Update Mesh buffers
   g_DeviceContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, nullptr, &cb, 0, 0);
   // Update Camera Buffers
@@ -652,6 +576,7 @@ void destroy()
 
   if (g_pSamplerLinear) g_pSamplerLinear->Release();
   if (g_pTextureRV) g_pTextureRV->Release();
+  if (pBackBuffer) pBackBuffer->Release();
   //if (g_pCBNeverChanges) g_pCBNeverChanges->Release();
   //if (g_pCBChangeOnResize) g_pCBChangeOnResize->Release();
   if (g_Camera) g_Camera->Release();
@@ -723,11 +648,17 @@ void OnResize(float nWidth, float nHeight)
     g_DeviceContext->RSSetViewports(1, &viewport);
   }
 }
+
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 //--------------------------------------------------------------------------------------
 // Called every time the application receives a message
 //--------------------------------------------------------------------------------------
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+  if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+    return true;
   PAINTSTRUCT ps;
   HDC hdc;
 
@@ -735,25 +666,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
   {
   case WM_KEYDOWN:
     //// detectar entrada de teclado
-    //switch (wParam)
-    //{
-    //case 'W':
-    //  // mover el objeto hacia adelante
-    //  Position.z += movementSpeed * deltaTime;
-    //  break;
-    //case 'S':
-    //  // mover el objeto hacia atrás
-    //  Position.z -= movementSpeed * deltaTime;
-    //  break;
-    //case 'A':
-    //  // mover el objeto hacia la izquierda
-    //  Position.x -= movementSpeed * deltaTime;
-    //  break;
-    //case 'D':
-    //  // mover el objeto hacia la derecha
-    //  Position.x += movementSpeed * deltaTime;
-    //  break;
-    //}
+    switch (wParam)
+    {
+    case 'C':
+    {
+    }
+    break;
+    case 'S':
+      break;
+    case 'A':
+      break;
+    case 'D':
+      break;
+    }
     break;
   case WM_PAINT:
     hdc = BeginPaint(hWnd, &ps);
@@ -792,29 +717,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 //--------------------------------------------------------------------------------------
 void Render()
 {
-
-
-  // Modify the color
-  //g_vMeshColor.x = (sinf(t * 1.0f) + 1.0f) * 0.5f;
-  //g_vMeshColor.y = (cosf(t * 3.0f) + 1.0f) * 0.5f;
-  //g_vMeshColor.z = (sinf(t * 5.0f) + 1.0f) * 0.5f;
-
-  //
   // Clear the back buffer
-  //
   float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
   g_DeviceContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
 
-  //
   // Clear the depth buffer to 1.0 (max depth)
-  //
   g_DeviceContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-
-
-  //
   // Render the cube
-  //
   g_DeviceContext->VSSetShader(g_pVertexShader, nullptr, 0);
   g_DeviceContext->VSSetConstantBuffers(0, 1, &g_Camera);
   g_DeviceContext->VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
@@ -824,8 +733,7 @@ void Render()
   g_DeviceContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
   g_DeviceContext->DrawIndexed(36, 0, 0);
 
-  //
+  UI.render();
   // Present our back buffer to our front buffer
-  //
   g_pSwapChain->Present(0, 0);
 }
