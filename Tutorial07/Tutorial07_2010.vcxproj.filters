@@ -59,6 +59,9 @@
     <ClCompile Include="src\UserInterface.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Transform.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -104,6 +107,9 @@
       <Filter>Imgui\src</Filter>
     </ClInclude>
     <ClInclude Include="Include\UserInterface.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Transform.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

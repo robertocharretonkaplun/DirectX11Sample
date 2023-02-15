@@ -2,6 +2,7 @@
 #include "Commons.h"
 #include "CTime.h"
 #include "UserInterface.h"
+#include "Transform.h"
 
 //--------------------------------------------------------------------------------------
 // Global Variables
@@ -34,13 +35,12 @@ XMMATRIX                            g_Projection;
 XMFLOAT4                            g_vMeshColor(1, 1, 1, 1);
 Camera cam;
 ID3D11Texture2D* pBackBuffer = nullptr;
-Transform TCamera;
-Vector3f Position;
+//Vector3f Position;
 float movementSpeed = 5.0f;
 CTime g_Time;
 float speed;
 UserInterface UI;
-
+Transform transform;
 //--------------------------------------------------------------------------------------
 // Forward declarations
 //--------------------------------------------------------------------------------------
@@ -77,8 +77,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
   }
   // Initialize the time
   g_Time.init();
+
   
-  UI.init(g_hWnd, g_pd3dDevice, g_DeviceContext);
 
   // Main message loop
   MSG msg = { 0 };
@@ -98,7 +98,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
     }
   }
-  
   destroy();
 
   return (int)msg.wParam;
@@ -131,7 +130,7 @@ HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow)
 
   g_instance = hInstance;
   g_hInst = hInstance;
-  RECT rc = { 0, 0, 640, 480 };
+  RECT rc = { 0, 0, 1500, 840 };
   AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
   g_hWnd = CreateWindow("TutorialWindowClass", "Direct3D 11 Tutorial 7", WS_OVERLAPPEDWINDOW,
     CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
@@ -464,7 +463,7 @@ HRESULT InitDevice()
     return hr;
 
   // Load the Texture
-  hr = D3DX11CreateShaderResourceViewFromFile(g_pd3dDevice, "seafloor.dds", nullptr, nullptr, &g_pTextureRV, nullptr);
+  hr = D3DX11CreateShaderResourceViewFromFile(g_pd3dDevice, "DefaultTexture.dds", nullptr, nullptr, &g_pTextureRV, nullptr);
   if (FAILED(hr))
     return hr;
 
@@ -484,8 +483,8 @@ HRESULT InitDevice()
 
   // Initialize the world matrices
   g_World = XMMatrixIdentity();
-  TCamera.Position.x = 3.0f;
-  TCamera.Position.y = -6.0f;
+  //TCamera.Position.x = 3.0f;
+  //TCamera.Position.y = -6.0f;
   // Initialize the view matrix
   XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
   XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
@@ -498,65 +497,53 @@ HRESULT InitDevice()
   cam.mView = XMMatrixTranspose(g_View);
   cam.mProjection = XMMatrixTranspose(g_Projection);
 
-  // Update
+  // Initialize Classes
+  UI.init(g_hWnd, g_pd3dDevice, g_DeviceContext);
+  transform.init();
   return S_OK;
 }
 
 void Input(float deltaTime) {
   if (GetAsyncKeyState('W') & 0x8000) {
     // move object forward
-    Position.y += movementSpeed * deltaTime;
+    transform.Position.y += movementSpeed * deltaTime;
   }
   if (GetAsyncKeyState('S') & 0x8000) {
     // move object backward
-    Position.y -= movementSpeed * deltaTime;
+    transform.Position.y -= movementSpeed * deltaTime;
   }
   if (GetAsyncKeyState('A') & 0x8000) {
     // move object left
-    Position.x -= movementSpeed * deltaTime;
+    transform.Position.x -= movementSpeed * deltaTime;
   }
   if (GetAsyncKeyState('D') & 0x8000) {
     // move object right
-    Position.x += movementSpeed * deltaTime;
+    transform.Position.x += movementSpeed * deltaTime;
   }
 
   if (GetAsyncKeyState('E') & 0x8000) {
     // move object right
-    Position.z += movementSpeed * deltaTime;
+    transform.Position.z += movementSpeed * deltaTime;
   }
   if (GetAsyncKeyState('Q') & 0x8000) {
     // move object right
-    Position.z -= movementSpeed * deltaTime;
+    transform.Position.z -= movementSpeed * deltaTime;
   }
 
-  if (GetAsyncKeyState('J') & 0x8000) {
-    // move object right
-    TCamera.Position.x -= movementSpeed * deltaTime;
-  }
-  if (GetAsyncKeyState('I') & 0x8000) {
-    // move object right
-    TCamera.Position.y += movementSpeed * deltaTime;
-  }
 }
 
 // Esta funcion esta encargada de actualizar la LOGICA del programa
 void update(float deltaTime) {
   UI.update();
   Input(deltaTime);
-  
+
   bool show_demo_window = true;
-  //ImGui::ShowDemoWindow(&show_demo_window);
-  ImGui::Begin("Test");
 
-  ImGui::End();
-  
-  ImGui::Begin("Test2");
-
-  ImGui::End();
+  transform.ui();
   // Update variables that change once per frame
   //speed += .0002f;
   // Rotate cube around the origin
-  g_World = XMMatrixScaling(1, 1, 1) * XMMatrixRotationY(0) * XMMatrixTranslation(Position.x, Position.y, Position.z);
+  g_World = XMMatrixScaling(1, 1, 1) * XMMatrixRotationY(0) * XMMatrixTranslation(transform.Position.x, transform.Position.y, transform.Position.z);
   CBChangesEveryFrame cb;
   cb.mWorld = XMMatrixTranspose(g_World);
   cb.vMeshColor = g_vMeshColor;
@@ -576,7 +563,6 @@ void destroy()
 
   if (g_pSamplerLinear) g_pSamplerLinear->Release();
   if (g_pTextureRV) g_pTextureRV->Release();
-  if (pBackBuffer) pBackBuffer->Release();
   //if (g_pCBNeverChanges) g_pCBNeverChanges->Release();
   //if (g_pCBChangeOnResize) g_pCBChangeOnResize->Release();
   if (g_Camera) g_Camera->Release();
@@ -592,6 +578,8 @@ void destroy()
   if (g_pSwapChain) g_pSwapChain->Release();
   if (g_DeviceContext) g_DeviceContext->Release();
   if (g_pd3dDevice) g_pd3dDevice->Release();
+  //if (pBackBuffer) pBackBuffer->Release();
+  UI.destroy();
 }
 
 /*
