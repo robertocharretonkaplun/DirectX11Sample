@@ -24,11 +24,13 @@ public:
   void 
   ui();
 public:
-	Vector3f Position;
-	Vector3f Rotation;
-	Vector3f Scale;
+	Vector3f m_position;
+	Vector3f m_rotation;
+	Vector3f m_scale;
   UserInterface UI;
 private:
   // UI data
   float* m_pos;
+  float* m_rot;
+  float* m_sca;
 };
