@@ -26,4 +26,5 @@ public:
   RECT m_rect;
   unsigned int m_width;
   unsigned int m_height;
+  std::string m_windowName = "HeatBlast Engine";
 };

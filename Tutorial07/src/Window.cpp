@@ -31,7 +31,7 @@ Window::init(HINSTANCE hInstance, int nCmdShow, WNDPROC wndproc) {
   RECT rc = { 0, 0, 1500, 840 };
   AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
   m_hWnd = CreateWindow("TutorialWindowClass", 
-                        "Direct3D 11 Tutorial 7", 
+                        m_windowName.data(), 
                         WS_OVERLAPPEDWINDOW,
                         CW_USEDEFAULT, 
                         CW_USEDEFAULT, 
@@ -53,14 +53,14 @@ Window::init(HINSTANCE hInstance, int nCmdShow, WNDPROC wndproc) {
   return S_OK;
 }
 
-void Window::update()
-{
+void 
+Window::update() {
 }
 
-void Window::render()
-{
+void 
+Window::render() {
 }
 
-void Window::destroy()
-{
+void 
+Window::destroy() {
 }

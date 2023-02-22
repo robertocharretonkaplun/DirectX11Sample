@@ -4,16 +4,13 @@
 #include "UserInterface.h"
 #include "Transform.h"
 #include "Window.h"
+#include "DeviceContext.h"
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
-void*                               g_instance = nullptr;
-//HINSTANCE                           g_hInst = nullptr;
-//HWND                                g_hWnd = nullptr;
 D3D_DRIVER_TYPE                     g_driverType = D3D_DRIVER_TYPE_NULL;
 D3D_FEATURE_LEVEL                   g_featureLevel = D3D_FEATURE_LEVEL_11_0;
 ID3D11Device*                       g_pd3dDevice = nullptr;
-ID3D11DeviceContext*                g_DeviceContext = nullptr;
 IDXGISwapChain*                     g_pSwapChain = nullptr;
 ID3D11RenderTargetView*             g_pRenderTargetView = nullptr;
 ID3D11Texture2D*                    g_pDepthStencil = nullptr;
@@ -33,7 +30,8 @@ XMMATRIX                            g_Projection;
 XMFLOAT4                            g_vMeshColor(1, 1, 1, 1);
 ID3D11Texture2D*                    pBackBuffer = nullptr;
 
-Window g_window;
+Window                              g_window;
+DeviceContext                       g_deviceContext;
 Camera                              g_cam;
 CTime                               g_Time;
 UserInterface                       g_UI;
@@ -43,9 +41,8 @@ float                               g_speed;
 //--------------------------------------------------------------------------------------
 // Forward declarations
 //--------------------------------------------------------------------------------------
-HRESULT InitWindow(HINSTANCE hInstance, int nCmdShow);
+
 HRESULT InitDevice();
-void CleanupDevice(); // = Destroy()
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 void Render();
 void update(float deltaTime);
@@ -97,48 +94,6 @@ wWinMain(HINSTANCE hInstance,
 
   return (int)msg.wParam;
 }
-
-
-//--------------------------------------------------------------------------------------
-// Register class and create window
-//--------------------------------------------------------------------------------------
-/*
-HRESULT 
-InitWindow(HINSTANCE hInstance, int nCmdShow) {
-  // Register class
-  WNDCLASSEX wcex;
-  wcex.cbSize = sizeof(WNDCLASSEX);
-  wcex.style = CS_HREDRAW | CS_VREDRAW;
-  wcex.lpfnWndProc = WndProc;
-  wcex.cbClsExtra = 0;
-  wcex.cbWndExtra = 0;
-  wcex.hInstance = hInstance;
-  wcex.hIcon = LoadIcon(hInstance, (LPCTSTR)IDI_TUTORIAL1);
-  wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-  wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
-  wcex.lpszMenuName = nullptr;
-  wcex.lpszClassName = "TutorialWindowClass";
-  wcex.hIconSm = LoadIcon(wcex.hInstance, (LPCTSTR)IDI_TUTORIAL1);
-  if (!RegisterClassEx(&wcex))
-    return E_FAIL;
-
-  // Create window
-
-  g_instance = hInstance;
-  g_hInst = hInstance;
-  RECT rc = { 0, 0, 1500, 840 };
-  AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
-  g_hWnd = CreateWindow("TutorialWindowClass", "Direct3D 11 Tutorial 7", WS_OVERLAPPEDWINDOW,
-    CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
-    nullptr);
-  if (!g_hWnd)
-    return E_FAIL;
-
-  ShowWindow(g_hWnd, nCmdShow);
-  return S_OK;
-}
-*/
-
 
 //--------------------------------------------------------------------------------------
 // Helper for compiling shaders with D3DX11
@@ -232,7 +187,7 @@ InitDevice() {
                                        &g_pSwapChain, 
                                        &g_pd3dDevice, 
                                        &g_featureLevel, 
-                                       &g_DeviceContext);
+                                       &g_deviceContext.m_deviceContext);
     if (SUCCEEDED(hr))
       break;
   }
@@ -284,7 +239,7 @@ InitDevice() {
     return hr;
   }
 
-  g_DeviceContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+  g_deviceContext.m_deviceContext->OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
 
   // Setup the viewport
   D3D11_VIEWPORT vp;
@@ -294,7 +249,7 @@ InitDevice() {
   vp.MaxDepth = 1.0f;
   vp.TopLeftX = 0;
   vp.TopLeftY = 0;
-  g_DeviceContext->RSSetViewports(1, &vp);
+  g_deviceContext.m_deviceContext->RSSetViewports(1, &vp);
 
   // Compile the vertex shader
   ID3DBlob* pVSBlob = nullptr;
@@ -351,7 +306,7 @@ InitDevice() {
     return hr;
 
   // Set the input layout
-  g_DeviceContext->IASetInputLayout(g_pVertexLayout);
+  g_deviceContext.m_deviceContext->IASetInputLayout(g_pVertexLayout);
 
   // Compile the pixel shader
   ID3DBlob* pPSBlob = nullptr;
@@ -422,7 +377,7 @@ InitDevice() {
   // Set vertex buffer
   UINT stride = sizeof(SimpleVertex);
   UINT offset = 0;
-  g_DeviceContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
+  g_deviceContext.m_deviceContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
 
   // Create index buffer
   // Create vertex buffer
@@ -457,10 +412,10 @@ InitDevice() {
     return hr;
 
   // Set index buffer
-  g_DeviceContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+  g_deviceContext.m_deviceContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
   // Set primitive topology
-  g_DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  g_deviceContext.m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   // Create the constant buffers
   bd.Usage = D3D11_USAGE_DEFAULT;
@@ -516,7 +471,7 @@ InitDevice() {
   g_cam.mProjection = XMMatrixTranspose(g_Projection);
 
   // Initialize Classes
-  g_UI.init(g_window.m_hWnd, g_pd3dDevice, g_DeviceContext);
+  g_UI.init(g_window.m_hWnd, g_pd3dDevice, g_deviceContext.m_deviceContext);
   g_transform.init();
   return S_OK;
 }
@@ -577,9 +532,9 @@ update(float deltaTime) {
   cb.vMeshColor = g_vMeshColor;
   // Update Data
   // Update Mesh buffers
-  g_DeviceContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, nullptr, &cb, 0, 0);
+  g_deviceContext.m_deviceContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, nullptr, &cb, 0, 0);
   // Update Camera Buffers
-  g_DeviceContext->UpdateSubresource(g_Camera, 0, nullptr, &g_cam, 0, 0);
+  g_deviceContext.m_deviceContext->UpdateSubresource(g_Camera, 0, nullptr, &g_cam, 0, 0);
 }
 
 //--------------------------------------------------------------------------------------
@@ -587,7 +542,8 @@ update(float deltaTime) {
 //--------------------------------------------------------------------------------------
 void 
 destroy() {
-  if (g_DeviceContext) g_DeviceContext->ClearState();
+  //if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->ClearState();
+  g_deviceContext.destroy();
 
   if (g_pSamplerLinear) g_pSamplerLinear->Release();
   if (g_pTextureRV) g_pTextureRV->Release();
@@ -604,7 +560,7 @@ destroy() {
   if (g_pDepthStencilView) g_pDepthStencilView->Release();
   if (g_pRenderTargetView) g_pRenderTargetView->Release();
   if (g_pSwapChain) g_pSwapChain->Release();
-  if (g_DeviceContext) g_DeviceContext->Release();
+  //if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->Release();
   if (g_pd3dDevice) g_pd3dDevice->Release();
   //if (pBackBuffer) pBackBuffer->Release();
   g_UI.destroy();
@@ -635,7 +591,7 @@ UpdateProjectionMatrix(UINT width, UINT height) {
 void 
 OnResize(float nWidth, float nHeight) {
   // Releasing resources before resizing
-  if (g_DeviceContext) g_DeviceContext->ClearState();
+  if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->ClearState();
 
   // Releasing swap chain buffers
   //...
@@ -657,11 +613,11 @@ OnResize(float nWidth, float nHeight) {
   viewport.Height = nHeight;
   viewport.MinDepth = 0.0f;
   viewport.MaxDepth = 1.0f;
-  if (g_DeviceContext != nullptr)
+  if (g_deviceContext.m_deviceContext != nullptr)
   {
     // Actualiza la matriz de proyección después de hacer resize
     UpdateProjectionMatrix(nWidth, nHeight);
-    g_DeviceContext->RSSetViewports(1, &viewport);
+    g_deviceContext.m_deviceContext->RSSetViewports(1, &viewport);
   }
 }
 
@@ -736,19 +692,19 @@ void
 Render() {
   // Clear the back buffer
   float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
-  g_DeviceContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
+  g_deviceContext.m_deviceContext->ClearRenderTargetView(g_pRenderTargetView, ClearColor);
 
   // Clear the depth buffer to 1.0 (max depth)
-  g_DeviceContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+  g_deviceContext.m_deviceContext->ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
   // Render the cube
-  g_DeviceContext->VSSetShader(g_pVertexShader, nullptr, 0);
-  g_DeviceContext->VSSetConstantBuffers(0, 1, &g_Camera);
-  g_DeviceContext->VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
-  g_DeviceContext->PSSetShader(g_pPixelShader, nullptr, 0);
-  g_DeviceContext->PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
-  g_DeviceContext->PSSetShaderResources(0, 1, &g_pTextureRV);
-  g_DeviceContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
-  g_DeviceContext->DrawIndexed(36, 0, 0);
+  g_deviceContext.m_deviceContext->VSSetShader(g_pVertexShader, nullptr, 0);
+  g_deviceContext.m_deviceContext->VSSetConstantBuffers(0, 1, &g_Camera);
+  g_deviceContext.m_deviceContext->VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
+  g_deviceContext.m_deviceContext->PSSetShader(g_pPixelShader, nullptr, 0);
+  g_deviceContext.m_deviceContext->PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
+  g_deviceContext.PSSetShaderResources(0, 1, &g_pTextureRV);
+  g_deviceContext.PSSetSamplers(0, 1, &g_pSamplerLinear);
+  g_deviceContext.DrawIndexed(36, 0, 0);
 
   g_UI.render();
   // Present our back buffer to our front buffer
