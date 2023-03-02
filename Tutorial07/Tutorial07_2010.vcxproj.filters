@@ -68,6 +68,9 @@
     <ClCompile Include="src\DeviceContext.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Device.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -122,6 +125,12 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Include\DeviceContext.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\Device.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\OBJ_Loader.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

@@ -27,6 +27,12 @@ public:
       float* values,
       float resetValues = 0.0f,
       float columnWidth = 100.0f);
+
+  void
+  darkStyle();
+  
+  void
+  greyStyle();
 private:
 
 };
