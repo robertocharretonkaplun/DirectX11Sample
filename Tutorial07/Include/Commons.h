@@ -10,6 +10,15 @@ SimpleVertex {
 
 };
 
+struct
+LoadData {
+  std::string name;
+  std::vector <SimpleVertex> vertex;
+  std::vector<unsigned int> index;
+  int numVertex;
+  int numIndex;
+};
+
 struct 
 Camera {
   XMMATRIX mView;

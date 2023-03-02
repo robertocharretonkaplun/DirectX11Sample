@@ -133,6 +133,9 @@
     <ClInclude Include="Include\OBJ_Loader.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="Include\ModelLoader.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

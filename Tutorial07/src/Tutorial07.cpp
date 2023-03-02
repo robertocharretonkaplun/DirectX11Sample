@@ -333,28 +333,28 @@ InitDevice() {
     return hr;
 
   
-  loader.LoadFile("cube.obj");
+  loader.LoadFile("Pistol.obj");
   WARNING(loader.LoadedMeshes[0].MeshName.c_str());
-
+  
   std::vector <SimpleVertex> vertex;
 
-  vertex.resize(loader.LoadedMeshes[0].Vertices.size());
+  vertex.resize(loader.LoadedVertices.size());
 
   for (int i = 0; i < vertex.size(); i++)
   {
-    vertex[i].Pos.x = loader.LoadedMeshes[0].Vertices[i].Position.X;
-    vertex[i].Pos.y = loader.LoadedMeshes[0].Vertices[i].Position.Y;
-    vertex[i].Pos.z = loader.LoadedMeshes[0].Vertices[i].Position.Z;
+    vertex[i].Pos.x = loader.LoadedVertices[i].Position.X;
+    vertex[i].Pos.y = loader.LoadedVertices[i].Position.Y;
+    vertex[i].Pos.z = loader.LoadedVertices[i].Position.Z;
 
-    vertex[i].Tex.x = loader.LoadedMeshes[0].Vertices[i].TextureCoordinate.X;
-    vertex[i].Tex.y = loader.LoadedMeshes[0].Vertices[i].TextureCoordinate.Y;
+    vertex[i].Tex.x = loader.LoadedVertices[i].TextureCoordinate.X;
+    vertex[i].Tex.y = loader.LoadedVertices[i].TextureCoordinate.Y;
   }
 
   
-  index.resize(loader.LoadedMeshes[0].Indices.size());
+  index.resize(loader.LoadedIndices.size());
   for (int i = 0; i < index.size(); i++)
   {
-    index[i] = loader.LoadedMeshes[0].Indices[i];
+    index[i] = loader.LoadedIndices[i];
   }
   // Create vertex buffer
   /*
@@ -449,7 +449,7 @@ InitDevice() {
     return hr;
 
   // Set index buffer
-  g_deviceContext.IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
+  g_deviceContext.IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
   // Set primitive topology
   g_deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -496,7 +496,7 @@ InitDevice() {
   g_World = XMMatrixIdentity();
 
   // Initialize the view matrix
-  XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
+  XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, -30.0f);
   XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
   XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
   g_View = XMMatrixLookAtLH(Eye, At, Up);
