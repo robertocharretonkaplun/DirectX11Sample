@@ -329,7 +329,7 @@ InitDevice() {
   
   // Load Model
   LD = g_modelLoader.Load("Pistol.obj");
-
+  // Ejemplo
   // Create vertex buffer
   
   D3D11_BUFFER_DESC bd;
