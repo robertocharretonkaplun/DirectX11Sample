@@ -88,6 +88,7 @@ wWinMain(HINSTANCE hInstance,
   // Main message loop
   MSG msg = { 0 };
   while (WM_QUIT != msg.message) {
+    
     if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
       TranslateMessage(&msg);
       DispatchMessage(&msg);
@@ -97,7 +98,7 @@ wWinMain(HINSTANCE hInstance,
       g_Time.update();
       update(g_Time.m_deltaTime);
       Render();
-
+      
     }
   }
   destroy();
@@ -330,41 +331,7 @@ InitDevice() {
   LD = g_modelLoader.Load("Pistol.obj");
 
   // Create vertex buffer
-  /*
-  SimpleVertex vertices[] =
-  {
-      { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-
-      { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-
-      { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-
-      { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-
-      { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) },
-
-      { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-  };
-
-  */
+  
   D3D11_BUFFER_DESC bd;
   memset(&bd,0, sizeof(bd));
   bd.Usage = D3D11_USAGE_DEFAULT;
@@ -384,28 +351,7 @@ InitDevice() {
 
   // Create index buffer
   // Create vertex buffer
-  /*
-  WORD indices[] =
-  {
-      3,1,0,
-      2,1,3,
-
-      6,4,5,
-      7,4,6,
-
-      11,9,8,
-      10,9,11,
-
-      14,12,13,
-      15,12,14,
-
-      19,17,16,
-      18,17,19,
-
-      22,20,21,
-      23,20,22
-  };
-  */
+  
 
   D3D11_BUFFER_DESC ib;
   memset(&ib, 0, sizeof(ib));
@@ -518,13 +464,16 @@ void
 update(float deltaTime) {
   g_UI.update();
   Input(deltaTime);
-
   bool show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
   ImGui::Begin("Textures");
   ImGui::Image(g_pTextureRV, ImVec2(50, 50));
   ImGui::End();
   g_transform.ui();
+  g_modelLoader.ui();
+
+
+  
   // Update variables that change once per frame
   //speed += .0002f;
   // Rotate cube around the origin
@@ -567,11 +516,13 @@ destroy() {
   if (g_pPixelShader) g_pPixelShader->Release();
   if (g_pDepthStencil) g_pDepthStencil->Release();
   //if (g_pDepthStencilView) g_pDepthStencilView->Release();
+  g_depthStencilView.destroy();
   if (g_pRenderTargetView) g_pRenderTargetView->Release();
   if (g_pSwapChain) g_pSwapChain->Release();
   // Destroy Device
   //if (g_device.m_device) g_device.m_device->Release();
   g_UI.destroy();
+  g_device.destroy();
 }
 
 // Forward declare message handler from imgui_impl_win32.cpp
@@ -611,7 +562,7 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     EndPaint(hWnd, &ps);
     break;
   case  WM_IME_KEYUP:
-
+    break;
   case WM_DESTROY:
     PostQuitMessage(0);
     break;
@@ -651,6 +602,7 @@ Render() {
   
   g_deviceContext.OMSetRenderTargets(1, &g_pRenderTargetView, g_depthStencilView.m_depthStencilView);
   g_deviceContext.RSSetViewports(1, &vp);
+
   g_deviceContext.IASetInputLayout(g_pVertexLayout);
   g_deviceContext.IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
   g_deviceContext.IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);

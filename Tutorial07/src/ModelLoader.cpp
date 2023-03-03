@@ -13,6 +13,7 @@ ModelLoader::init() {
 
 void 
 ModelLoader::update() {
+  
 }
 
 void 
@@ -29,7 +30,11 @@ ModelLoader::Load(std::string objFileName) {
   // Temporal Load Data
   LoadData LD;
   objl::Loader Loader;
+
   Loader.LoadFile(objFileName);
+
+  int totalVertices = Loader.LoadedVertices.size();
+  int loadedVertices = 0;
 
   LD.name = objFileName;
 
@@ -47,8 +52,11 @@ ModelLoader::Load(std::string objFileName) {
     // Load Textures
     LD.vertex[i].Tex.x = Loader.LoadedVertices[i].TextureCoordinate.X;
     LD.vertex[i].Tex.y = Loader.LoadedVertices[i].TextureCoordinate.Y;
+    loadedVertices++;
+    percentage = (float)loadedVertices / (float)totalVertices * 100;
+    WARNING("Cargando modelo: " << percentage << "% \n");
+    
   }
-
   // Load and set data to custom structure (Indices)
   LD.index.resize(Loader.LoadedIndices.size());
   for (int i = 0; i < LD.index.size(); i++) {
@@ -58,4 +66,14 @@ ModelLoader::Load(std::string objFileName) {
   LD.numVertex = LD.vertex.size();
   LD.numIndex = LD.index.size();
   return LD;
+}
+
+void 
+ModelLoader::ui() {
+  ImGui::Begin("Activity Progress");
+  ImGui::Text("OBJ");
+  ImGui::Text("0/0");
+  ImGui::SameLine(50.0f);
+  ImGui::ProgressBar(percentage, ImVec2(0.0f, 0.0f));
+  ImGui::End();
 }
