@@ -14,6 +14,6 @@ En conjunto, estas herramientas hacen que el proceso de desarrollo de aplicacion
 
 El repositorio incluye la biblioteca Imgui Docking, la cual permite a los desarrolladores crear interfaces de usuario interactivas y personalizables de manera sencilla. Esta biblioteca es una herramienta poderosa para mejorar la experiencia del usuario y facilitar el uso de la aplicación. Recomendamos el siguiente video como referencia para [**integrar Imgui Docking**](https://youtu.be/e_VAeIhPN78) en sus proyectos: 
 
-![DearImgui.png](Heat%20Blast%20Engine%2044cd39288033495db86bc0247caeb45f/DearImgui.png)
+![DearImgui.png](DearImgui.png)
 
 # OBJ Loader
