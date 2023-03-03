@@ -422,6 +422,7 @@
     <ClCompile Include="src\Device.cpp" />
     <ClCompile Include="src\DeviceContext.cpp" />
     <ClCompile Include="src\ModelLoader.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\Tutorial07.cpp" />
     <ClCompile Include="src\UserInterface.cpp" />
@@ -445,6 +446,7 @@
     <ClInclude Include="Include\Prerequisites.h" />
     <ClInclude Include="Include\Resource.h" />
     <ClInclude Include="Include\CTime.h" />
+    <ClInclude Include="Include\Texture.h" />
     <ClInclude Include="Include\Transform.h" />
     <ClInclude Include="Include\UserInterface.h" />
     <ClInclude Include="Include\Window.h" />
