@@ -6,7 +6,8 @@
 #include "Window.h"
 #include "Device.h"
 #include "DeviceContext.h"
-#include "OBJ_Loader.h"
+#include "DepthStencilView.h"
+#include "ModelLoader.h"
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
@@ -16,7 +17,7 @@ D3D_FEATURE_LEVEL                   g_featureLevel = D3D_FEATURE_LEVEL_11_0;
 IDXGISwapChain*                     g_pSwapChain = nullptr;
 ID3D11RenderTargetView*             g_pRenderTargetView = nullptr;
 ID3D11Texture2D*                    g_pDepthStencil = nullptr;
-ID3D11DepthStencilView*             g_pDepthStencilView = nullptr;
+//ID3D11DepthStencilView*             g_pDepthStencilView = nullptr;
 ID3D11VertexShader*                 g_pVertexShader = nullptr;
 ID3D11PixelShader*                  g_pPixelShader = nullptr;
 ID3D11InputLayout*                  g_pVertexLayout = nullptr;
@@ -35,14 +36,18 @@ ID3D11Texture2D*                    pBackBuffer = nullptr;
 Window                              g_window;
 Device                              g_device;
 DeviceContext                       g_deviceContext;
+DepthStencilView                    g_depthStencilView;
 Camera                              g_cam;
 CTime                               g_Time;
 UserInterface                       g_UI;
 Transform                           g_transform;
 float                               g_movementSpeed = 5.0f;
 float                               g_speed;
-objl::Loader loader;
-std::vector<unsigned int> index;
+LoadData LD;
+ModelLoader                         g_modelLoader;
+D3D11_VIEWPORT vp;
+UINT stride = sizeof(SimpleVertex);
+UINT offset = 0;
 //--------------------------------------------------------------------------------------
 // Forward declarations
 //--------------------------------------------------------------------------------------
@@ -232,29 +237,18 @@ InitDevice() {
   }
 
   // Create the depth stencil view
-  D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
-  memset(&descDSV, 0, sizeof(descDSV));
-  descDSV.Format = descDepth.Format;
-  descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-  descDSV.Texture2D.MipSlice = 0;
-  hr = g_device.CreateDepthStencilView(g_pDepthStencil, &descDSV, &g_pDepthStencilView);
-  if (FAILED(hr))
-  {
-    WARNING("Engine - Error in the Depth Stencil view Creation\n");
-    return hr;
-  }
 
-  g_deviceContext.OMSetRenderTargets(1, &g_pRenderTargetView, g_pDepthStencilView);
+  g_depthStencilView.init(g_device, g_pDepthStencil, descDepth.Format);
+
 
   // Setup the viewport
-  D3D11_VIEWPORT vp;
+  
   vp.Width = (FLOAT) g_window.m_width;
   vp.Height = (FLOAT)g_window.m_height;
   vp.MinDepth = 0.0f;
   vp.MaxDepth = 1.0f;
   vp.TopLeftX = 0;
   vp.TopLeftY = 0;
-  g_deviceContext.RSSetViewports(1, &vp);
 
   // Compile the vertex shader
   ID3DBlob* pVSBlob = nullptr;
@@ -311,7 +305,6 @@ InitDevice() {
     return hr;
 
   // Set the input layout
-  g_deviceContext.IASetInputLayout(g_pVertexLayout);
 
   // Compile the pixel shader
   ID3DBlob* pPSBlob = nullptr;
@@ -333,29 +326,9 @@ InitDevice() {
     return hr;
 
   
-  loader.LoadFile("Pistol.obj");
-  WARNING(loader.LoadedMeshes[0].MeshName.c_str());
-  
-  std::vector <SimpleVertex> vertex;
+  // Load Model
+  LD = g_modelLoader.Load("Pistol.obj");
 
-  vertex.resize(loader.LoadedVertices.size());
-
-  for (int i = 0; i < vertex.size(); i++)
-  {
-    vertex[i].Pos.x = loader.LoadedVertices[i].Position.X;
-    vertex[i].Pos.y = loader.LoadedVertices[i].Position.Y;
-    vertex[i].Pos.z = loader.LoadedVertices[i].Position.Z;
-
-    vertex[i].Tex.x = loader.LoadedVertices[i].TextureCoordinate.X;
-    vertex[i].Tex.y = loader.LoadedVertices[i].TextureCoordinate.Y;
-  }
-
-  
-  index.resize(loader.LoadedIndices.size());
-  for (int i = 0; i < index.size(); i++)
-  {
-    index[i] = loader.LoadedIndices[i];
-  }
   // Create vertex buffer
   /*
   SimpleVertex vertices[] =
@@ -396,20 +369,18 @@ InitDevice() {
   memset(&bd,0, sizeof(bd));
   bd.Usage = D3D11_USAGE_DEFAULT;
   //bd.ByteWidth = sizeof(SimpleVertex) * 24;
-  bd.ByteWidth = sizeof(SimpleVertex) * vertex.size();
+  bd.ByteWidth = sizeof(SimpleVertex) * LD.numVertex;
   bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
   bd.CPUAccessFlags = 0;
   D3D11_SUBRESOURCE_DATA InitData;
   memset(&InitData, 0, sizeof(InitData));
-  InitData.pSysMem = vertex.data();
+  InitData.pSysMem = LD.vertex.data();
   hr = g_device.CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
   if (FAILED(hr))
     return hr;
 
   // Set vertex buffer
-  UINT stride = sizeof(SimpleVertex);
-  UINT offset = 0;
-  g_deviceContext.IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
+  
 
   // Create index buffer
   // Create vertex buffer
@@ -440,19 +411,17 @@ InitDevice() {
   memset(&ib, 0, sizeof(ib));
   ib.Usage = D3D11_USAGE_DEFAULT;
   //bd.ByteWidth = sizeof(WORD) * 36;
-  ib.ByteWidth = sizeof(unsigned int) * index.size();
+  ib.ByteWidth = sizeof(unsigned int) * LD.numIndex;
   ib.BindFlags = D3D11_BIND_INDEX_BUFFER;
   ib.CPUAccessFlags = 0;
-  InitData.pSysMem = index.data();
+  InitData.pSysMem = LD.index.data();
   hr = g_device.CreateBuffer(&ib, &InitData, &g_pIndexBuffer);
   if (FAILED(hr))
     return hr;
 
   // Set index buffer
-  g_deviceContext.IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
   // Set primitive topology
-  g_deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   // Create the constant buffers
   bd.Usage = D3D11_USAGE_DEFAULT;
@@ -552,6 +521,9 @@ update(float deltaTime) {
 
   bool show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
+  ImGui::Begin("Textures");
+  ImGui::Image(g_pTextureRV, ImVec2(50, 50));
+  ImGui::End();
   g_transform.ui();
   // Update variables that change once per frame
   //speed += .0002f;
@@ -594,67 +566,12 @@ destroy() {
   if (g_pVertexShader) g_pVertexShader->Release();
   if (g_pPixelShader) g_pPixelShader->Release();
   if (g_pDepthStencil) g_pDepthStencil->Release();
-  if (g_pDepthStencilView) g_pDepthStencilView->Release();
+  //if (g_pDepthStencilView) g_pDepthStencilView->Release();
   if (g_pRenderTargetView) g_pRenderTargetView->Release();
   if (g_pSwapChain) g_pSwapChain->Release();
   // Destroy Device
   //if (g_device.m_device) g_device.m_device->Release();
   g_UI.destroy();
-}
-
-/*
- * breif: This method is in charge of updating the information of the projection
-   Matrix, also the camera Struct is updated.
-   UINT width: Get the width of the window;
-   UINT height: Get the height of the window;
- */
-void 
-UpdateProjectionMatrix(UINT width, UINT height) {
-  XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
-  XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-  XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-  g_View = XMMatrixLookAtLH(Eye, At, Up);
-
-
-  // Crea la matriz de proyección
-  XMMATRIX P = XMMatrixPerspectiveFovLH(XM_PIDIV4, width / (FLOAT)height, 0.01f, 100.0f);
-  g_cam.mProjection = XMMatrixTranspose(P);
-
-  g_cam.mView = XMMatrixTranspose(g_View);
-}
-
-
-void 
-OnResize(float nWidth, float nHeight) {
-  // Releasing resources before resizing
-  if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->ClearState();
-
-  // Releasing swap chain buffers
-  //...
-  if (g_pSwapChain) g_pSwapChain->Release();
-  // Recreating the swap chain
-  if (g_pSwapChain != nullptr)
-  {
-    ID3D11Texture2D* pBackBuffer = nullptr;
-    g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
-    g_device.CreateRenderTargetView(pBackBuffer, nullptr, &g_pRenderTargetView);
-    pBackBuffer->Release();
-  }
-
-  // Updating the viewport to match the new window size
-  D3D11_VIEWPORT viewport;
-  viewport.TopLeftX = 0;
-  viewport.TopLeftY = 0;
-  viewport.Width = nWidth;
-  viewport.Height = nHeight;
-  viewport.MinDepth = 0.0f;
-  viewport.MaxDepth = 1.0f;
-  if (g_deviceContext.m_deviceContext != nullptr)
-  {
-    // Actualiza la matriz de proyección después de hacer resize
-    UpdateProjectionMatrix(nWidth, nHeight);
-    g_deviceContext.m_deviceContext->RSSetViewports(1, &viewport);
-  }
 }
 
 // Forward declare message handler from imgui_impl_win32.cpp
@@ -729,9 +646,17 @@ Render() {
   // Clear the back buffer
   float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
   g_deviceContext.ClearRenderTargetView(g_pRenderTargetView, ClearColor);
-
   // Clear the depth buffer to 1.0 (max depth)
-  g_deviceContext.ClearDepthStencilView(g_pDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+  g_deviceContext.ClearDepthStencilView(g_depthStencilView.m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+  
+  g_deviceContext.OMSetRenderTargets(1, &g_pRenderTargetView, g_depthStencilView.m_depthStencilView);
+  g_deviceContext.RSSetViewports(1, &vp);
+  g_deviceContext.IASetInputLayout(g_pVertexLayout);
+  g_deviceContext.IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
+  g_deviceContext.IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+  g_deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  
+
   // Render the cube
   g_deviceContext.VSSetShader(g_pVertexShader, nullptr, 0);
   g_deviceContext.VSSetConstantBuffers(0, 1, &g_Camera);
@@ -740,7 +665,7 @@ Render() {
   g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
   g_deviceContext.PSSetShaderResources(0, 1, &g_pTextureRV);
   g_deviceContext.PSSetSamplers(0, 1, &g_pSamplerLinear);
-  g_deviceContext.DrawIndexed(index.size(), 0, 0);
+  g_deviceContext.DrawIndexed(LD.numIndex, 0, 0);
 
   g_UI.render();
   // Present our back buffer to our front buffer

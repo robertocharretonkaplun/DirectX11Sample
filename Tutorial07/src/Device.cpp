@@ -23,10 +23,10 @@ Device::CreateRenderTargetView(ID3D11Resource* pResource,
   HRESULT hr = S_OK;
   if (pResource != nullptr || ppRTView != nullptr) {
     hr = m_device->CreateRenderTargetView(pResource, pDesc, ppRTView);
-    WARNING("Device::CreateRenderTargetView : [CREATION OF RESOURCE : OK]");
+    WARNING("Device::CreateRenderTargetView : [CREATION OF RESOURCE : OK] \n");
   }
   else {
-    WARNING("ERROR: Device::CreateRenderTargetView : Error in data from params [CHECK FOR METHOD INITIALIZATION]");
+    WARNING("ERROR: Device::CreateRenderTargetView : Error in data from params [CHECK FOR METHOD INITIALIZATION] \n");
     exit(1);
     //return hr;
   }
@@ -40,10 +40,10 @@ Device::CreateTexture2D(D3D11_TEXTURE2D_DESC* pDesc,
   HRESULT hr = S_OK;
   if (pDesc != nullptr || ppTexture2D != nullptr) {
     hr = m_device->CreateTexture2D(pDesc, pInitialData, ppTexture2D);
-    WARNING("Device::CreateTexture2D : [CREATION OF RESOURCE : OK]");
+    WARNING("Device::CreateTexture2D : [CREATION OF RESOURCE : OK] \n");
   }
   else {
-    WARNING("ERROR: Device::CreateTexture2D : Error in data from params [CHECK FOR METHOD INITIALIZATION]");
+    WARNING("ERROR: Device::CreateTexture2D : Error in data from params [CHECK FOR METHOD INITIALIZATION] \n");
     exit(1);
   }
   return hr;

@@ -71,6 +71,12 @@
     <ClCompile Include="src\Device.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\ModelLoader.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DepthStencilView.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -134,6 +140,9 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Include\ModelLoader.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\DepthStencilView.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

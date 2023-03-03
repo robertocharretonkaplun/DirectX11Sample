@@ -1,12 +1,12 @@
+#pragma once
 #include "Prerequisites.h"
 #include "Commons.h"
-#include "OBJ_Loader.h"
-#pragma once
 
-class ModelLoader
-{
+
+class 
+ModelLoader {
 public:
-	ModelLoader();
+	ModelLoader() ;
 	~ModelLoader();
 
 	void
@@ -22,8 +22,7 @@ public:
 	destroy();
 
 	LoadData
-	Load();
+	Load(std::string objFileName);
 
 private:
-
 };

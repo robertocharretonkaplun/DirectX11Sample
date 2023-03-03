@@ -1,5 +1,5 @@
-#include "Prerequisites.h"
 #pragma once
+#include "Prerequisites.h"
 
 // Esta estructura esta encargada de almacenar la informacion que tendran nuestros objetos para
 // despues dibujarse en pantalla.
@@ -14,7 +14,7 @@ struct
 LoadData {
   std::string name;
   std::vector <SimpleVertex> vertex;
-  std::vector<unsigned int> index;
+  std::vector <unsigned int> index;
   int numVertex;
   int numIndex;
 };
