@@ -2,7 +2,7 @@
 
 DirectX 11 es una API de gráficos utilizada en la industria de los videojuegos y otras aplicaciones multimedia que permite a los desarrolladores crear impresionantes efectos visuales en 3D. Esta API consta de varias clases clave, como Device, Device Context y Texture2D, que ayudan a los desarrolladores a interactuar con el hardware de gráficos de la computadora y crear escenas 3D complejas con facilidad.
 
-![Object model loaded from OBJ Loader](Object model loaded from OBJ Loader.png)
+![Object model loaded from OBJ Loader](ObjectmodelloadedfromOBJLoader.png)
 
 Object model loaded from OBJ Loader
 
