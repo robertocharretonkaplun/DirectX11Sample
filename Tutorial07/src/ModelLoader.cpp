@@ -52,7 +52,7 @@ ModelLoader::Load(std::string objFileName) {
 
       // Load Textures
       LD.vertex[i].Tex.x = Loader.LoadedVertices[i].TextureCoordinate.X;
-      LD.vertex[i].Tex.y = Loader.LoadedVertices[i].TextureCoordinate.Y;
+      LD.vertex[i].Tex.y = 1.0f - Loader.LoadedVertices[i].TextureCoordinate.Y;
       loadedVertices++;
       percentage = (float)loadedVertices / (float)totalVertices * 100;
       WARNING("Cargando modelo: " << percentage << "% \n");

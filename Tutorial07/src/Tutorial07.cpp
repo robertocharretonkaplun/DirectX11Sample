@@ -46,8 +46,8 @@ float                               g_speed;
 LoadData LD;
 ModelLoader                         g_modelLoader;
 D3D11_VIEWPORT vp;
-UINT stride = sizeof(SimpleVertex);
-UINT offset = 0;
+unsigned int stride = sizeof(SimpleVertex);
+unsigned int offset = 0;
 //--------------------------------------------------------------------------------------
 // Forward declarations
 //--------------------------------------------------------------------------------------
@@ -211,7 +211,12 @@ InitDevice() {
   if (FAILED(hr))
     return hr;
 
-  hr = g_device.CreateRenderTargetView(pBackBuffer, nullptr, &g_pRenderTargetView);
+  D3D11_RENDER_TARGET_VIEW_DESC desc = {};
+  desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+  ID3D11RenderTargetView* pRTV = nullptr;
+  hr = g_device.CreateRenderTargetView(pBackBuffer, &desc, &g_pRenderTargetView);
   pBackBuffer->Release();
   if (FAILED(hr))
     return hr;
@@ -385,7 +390,7 @@ InitDevice() {
 
   // Load the Texture
   hr = D3DX11CreateShaderResourceViewFromFile(g_device.m_device, 
-                                              "DefaultTexture.dds", 
+                                              "GunAlbedo.dds", 
                                               nullptr, 
                                               nullptr, 
                                               &g_pTextureRV, 
@@ -467,6 +472,9 @@ update(float deltaTime) {
   bool show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
   ImGui::Begin("Textures");
+  if (ImGui::Button("screenshot"))
+  {
+  }
   ImGui::Image(g_pTextureRV, ImVec2(50, 50));
   ImGui::End();
   g_transform.ui();
