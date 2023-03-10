@@ -1,18 +1,23 @@
 #pragma once
 #include "Prerequisites.h"
 #include "Commons.h"
+class Device;
 
-class Texture
-{
+class 
+Texture {
 public:
-	Texture();
-	~Texture();
+	Texture() = default;
+  ~Texture();
 
 	void 
-  init(std::string textureName);
+  init(Device device, std::string textureName);
 
   void
-  init(unsigned int width, unsigned int height, DXGI_FORMAT Format, UINT BindFlags);
+  init(Device device,
+       unsigned int width, 
+       unsigned int height, 
+       DXGI_FORMAT Format, 
+       unsigned int BindFlags);
 
   void 
   update();
@@ -22,6 +27,9 @@ public:
   
   void 
   destroy();
-private:
-
+public:
+  // This variable is in charge of handle a texture resource as data
+  ID3D11Texture2D* m_texture = nullptr;
+  // This variable is in charge of handle a texture resource as image data
+  ID3D11ShaderResourceView* m_textureFromImg; // m_textureSRV
 };

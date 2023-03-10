@@ -5,38 +5,43 @@
 #include "Transform.h"
 #include "Window.h"
 #include "Device.h"
+#include "SwapChain.h"
 #include "DeviceContext.h"
+#include "RenderTargetView.h"
 #include "DepthStencilView.h"
+#include "Viewport.h"
+#include "Texture.h"
+#include "SamplerState.h"
+#include "InputLayout.h"
 #include "ModelLoader.h"
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
-D3D_DRIVER_TYPE                     g_driverType = D3D_DRIVER_TYPE_NULL;
-D3D_FEATURE_LEVEL                   g_featureLevel = D3D_FEATURE_LEVEL_11_0;
-//ID3D11Device*                       g_device.m_device = nullptr;
-IDXGISwapChain*                     g_pSwapChain = nullptr;
-ID3D11RenderTargetView*             g_pRenderTargetView = nullptr;
-ID3D11Texture2D*                    g_pDepthStencil = nullptr;
-//ID3D11DepthStencilView*             g_pDepthStencilView = nullptr;
+
 ID3D11VertexShader*                 g_pVertexShader = nullptr;
 ID3D11PixelShader*                  g_pPixelShader = nullptr;
-ID3D11InputLayout*                  g_pVertexLayout = nullptr;
 ID3D11Buffer*                       g_pVertexBuffer = nullptr;
 ID3D11Buffer*                       g_pIndexBuffer = nullptr;
 ID3D11Buffer*                       g_Camera = nullptr;
 ID3D11Buffer*                       g_pCBChangesEveryFrame = nullptr;
-ID3D11ShaderResourceView*           g_pTextureRV = nullptr;
-ID3D11SamplerState*                 g_pSamplerLinear = nullptr;
+//ID3D11SamplerState*                 g_pSamplerLinear = nullptr;
 XMMATRIX                            g_World;
 XMMATRIX                            g_View;
 XMMATRIX                            g_Projection;
 XMFLOAT4                            g_vMeshColor(1, 1, 1, 1);
-ID3D11Texture2D*                    pBackBuffer = nullptr;
-
+// Custom Classes
 Window                              g_window;
 Device                              g_device;
+SwapChain                           g_swapChain;
 DeviceContext                       g_deviceContext;
+RenderTargetView                    g_renderTargetView;
 DepthStencilView                    g_depthStencilView;
+Viewport                            g_viewport;
+Texture                             g_depthStencil;
+Texture                             g_ModelTexture;
+Texture                             g_backBuffer;
+InputLayout                         g_inputLayout;
+SamplerState                        g_samplerLineal;
 Camera                              g_cam;
 CTime                               g_Time;
 UserInterface                       g_UI;
@@ -45,7 +50,7 @@ float                               g_movementSpeed = 5.0f;
 float                               g_speed;
 LoadData LD;
 ModelLoader                         g_modelLoader;
-D3D11_VIEWPORT vp;
+//D3D11_VIEWPORT vp;
 unsigned int stride = sizeof(SimpleVertex);
 unsigned int offset = 0;
 //--------------------------------------------------------------------------------------
@@ -146,115 +151,15 @@ CompileShaderFromFile(char* szFileName,
 HRESULT 
 InitDevice() {
   HRESULT hr = S_OK;
-  
-
-  unsigned int createDeviceFlags = 0;
-#ifdef _DEBUG
-  createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-  D3D_DRIVER_TYPE driverTypes[] =
-  {
-      D3D_DRIVER_TYPE_HARDWARE,
-      D3D_DRIVER_TYPE_WARP,
-      D3D_DRIVER_TYPE_REFERENCE,
-  };
-  unsigned int numDriverTypes = ARRAYSIZE(driverTypes);
-
-  D3D_FEATURE_LEVEL featureLevels[] =
-  {
-      D3D_FEATURE_LEVEL_11_0,
-      D3D_FEATURE_LEVEL_10_1,
-      D3D_FEATURE_LEVEL_10_0,
-  };
-
-
-  unsigned int numFeatureLevels = ARRAYSIZE(featureLevels);
-
-  DXGI_SWAP_CHAIN_DESC sd;
-  memset(&sd, 0, sizeof(sd));
-  sd.BufferCount = 1;
-  sd.BufferDesc.Width =  g_window.m_width;
-  sd.BufferDesc.Height = g_window.m_height;
-  sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-  sd.BufferDesc.RefreshRate.Numerator = 60;
-  sd.BufferDesc.RefreshRate.Denominator = 1;
-  sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-  sd.OutputWindow = g_window.m_hWnd;
-  sd.SampleDesc.Count = 1;
-  sd.SampleDesc.Quality = 0;
-  sd.Windowed = TRUE;
-
-  for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++) {
-    g_driverType = driverTypes[driverTypeIndex];
-    hr = D3D11CreateDeviceAndSwapChain(nullptr, 
-                                       g_driverType, 
-                                       nullptr, 
-                                       createDeviceFlags, 
-                                       featureLevels, 
-                                       numFeatureLevels,
-                                       D3D11_SDK_VERSION, 
-                                       &sd, 
-                                       &g_pSwapChain, 
-                                       &g_device.m_device,
-                                       &g_featureLevel, 
-                                       &g_deviceContext.m_deviceContext);
-    if (SUCCEEDED(hr))
-      break;
-  }
-  if (FAILED(hr))
-    return hr;
-
-  // Create a render target view
-
-  hr = g_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
-  if (FAILED(hr))
-    return hr;
-
-  D3D11_RENDER_TARGET_VIEW_DESC desc = {};
-  desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-  desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-
-  ID3D11RenderTargetView* pRTV = nullptr;
-  hr = g_device.CreateRenderTargetView(pBackBuffer, &desc, &g_pRenderTargetView);
-  pBackBuffer->Release();
-  if (FAILED(hr))
-    return hr;
-
-  // Create depth stencil texture
-  D3D11_TEXTURE2D_DESC descDepth;
-  memset(&descDepth, 0, sizeof(descDepth));
-  descDepth.Width =  g_window.m_width;
-  descDepth.Height = g_window.m_height;
-  descDepth.MipLevels = 1;
-  descDepth.ArraySize = 1;
-  descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-  descDepth.SampleDesc.Count = 1;
-  descDepth.SampleDesc.Quality = 0;
-  descDepth.Usage = D3D11_USAGE_DEFAULT;
-  descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-  descDepth.CPUAccessFlags = 0;
-  descDepth.MiscFlags = 0;
-  hr = g_device.CreateTexture2D(&descDepth, nullptr, &g_pDepthStencil);
-  if (FAILED(hr))
-  {
-    WARNING("Engine - Error in the Depth Stencil Texture Creation");
-    return hr;
-  }
-
-  // Create the depth stencil view
-
-  g_depthStencilView.init(g_device, g_pDepthStencil, descDepth.Format);
-
-
-  // Setup the viewport
-  
-  vp.Width = (FLOAT) g_window.m_width;
-  vp.Height = (FLOAT)g_window.m_height;
-  vp.MinDepth = 0.0f;
-  vp.MaxDepth = 1.0f;
-  vp.TopLeftX = 0;
-  vp.TopLeftY = 0;
+  g_swapChain.init(g_device, g_deviceContext, g_backBuffer, g_window);
+  g_renderTargetView.init(g_device, g_backBuffer, DXGI_FORMAT_R8G8B8A8_UNORM);
+  g_depthStencil.init(g_device, 
+                      g_window.m_width, 
+                      g_window.m_height,
+                      DXGI_FORMAT_D24_UNORM_S8_UINT, 
+                      D3D11_BIND_DEPTH_STENCIL);
+  g_depthStencilView.init(g_device, g_depthStencil.m_texture, DXGI_FORMAT_D24_UNORM_S8_UINT);
+  g_viewport.init(g_window);
 
   // Compile the vertex shader
   ID3DBlob* pVSBlob = nullptr;
@@ -301,11 +206,7 @@ InitDevice() {
   Layout.push_back(texcoord);
 
   // Create the input layout
-  hr = g_device.CreateInputLayout(Layout.data(), 
-                                       Layout.size(), 
-                                       pVSBlob->GetBufferPointer(),
-                                       pVSBlob->GetBufferSize(), 
-                                       &g_pVertexLayout);
+  g_inputLayout.init(g_device, Layout, pVSBlob);
   pVSBlob->Release();
   if (FAILED(hr))
     return hr;
@@ -351,13 +252,6 @@ InitDevice() {
   if (FAILED(hr))
     return hr;
 
-  // Set vertex buffer
-  
-
-  // Create index buffer
-  // Create vertex buffer
-  
-
   D3D11_BUFFER_DESC ib;
   memset(&ib, 0, sizeof(ib));
   ib.Usage = D3D11_USAGE_DEFAULT;
@@ -369,10 +263,6 @@ InitDevice() {
   hr = g_device.CreateBuffer(&ib, &InitData, &g_pIndexBuffer);
   if (FAILED(hr))
     return hr;
-
-  // Set index buffer
-
-  // Set primitive topology
 
   // Create the constant buffers
   bd.Usage = D3D11_USAGE_DEFAULT;
@@ -389,28 +279,21 @@ InitDevice() {
     return hr;
 
   // Load the Texture
-  hr = D3DX11CreateShaderResourceViewFromFile(g_device.m_device, 
-                                              "GunAlbedo.dds", 
-                                              nullptr, 
-                                              nullptr, 
-                                              &g_pTextureRV, 
-                                              nullptr);
-  if (FAILED(hr))
-    return hr;
+  g_ModelTexture.init(g_device, "GunAlbedo.dds");
 
   // Create the sample state
-  D3D11_SAMPLER_DESC sampDesc;
-  memset(&sampDesc, 0, sizeof(sampDesc));
-  sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-  sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-  sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-  sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-  sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-  sampDesc.MinLOD = 0;
-  sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-  hr = g_device.CreateSamplerState(&sampDesc, &g_pSamplerLinear);
-  if (FAILED(hr))
-    return hr;
+  //D3D11_SAMPLER_DESC sampDesc;
+  //memset(&sampDesc, 0, sizeof(sampDesc));
+  //sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+  //sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+  //sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+  //sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+  //sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+  //sampDesc.MinLOD = 0;
+  //sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+  g_samplerLineal.init(g_device);
+  //hr = g_device.CreateSamplerState(&sampDesc, &g_pSamplerLinear);
+  
 
   // Initialize the world matrices
   g_World = XMMatrixIdentity();
@@ -475,7 +358,7 @@ update(float deltaTime) {
   if (ImGui::Button("screenshot"))
   {
   }
-  ImGui::Image(g_pTextureRV, ImVec2(50, 50));
+  ImGui::Image(g_ModelTexture.m_textureFromImg, ImVec2(50, 50));
   ImGui::End();
   g_transform.ui();
   g_modelLoader.ui();
@@ -511,22 +394,28 @@ void
 destroy() {
   g_deviceContext.destroy();
 
-  if (g_pSamplerLinear) g_pSamplerLinear->Release();
-  if (g_pTextureRV) g_pTextureRV->Release();
+  //if (g_pSamplerLinear) g_pSamplerLinear->Release();
+  g_samplerLineal.destroy();
+  //if (g_pTextureRV) g_pTextureRV->Release();
+  g_ModelTexture.destroy();
+  g_modelLoader.destroy();
   //if (g_pCBNeverChanges) g_pCBNeverChanges->Release();
   //if (g_pCBChangeOnResize) g_pCBChangeOnResize->Release();
   if (g_Camera) g_Camera->Release();
   if (g_pCBChangesEveryFrame) g_pCBChangesEveryFrame->Release();
   if (g_pVertexBuffer) g_pVertexBuffer->Release();
   if (g_pIndexBuffer) g_pIndexBuffer->Release();
-  if (g_pVertexLayout) g_pVertexLayout->Release();
+  //if (g_pVertexLayout) g_pVertexLayout->Release();
   if (g_pVertexShader) g_pVertexShader->Release();
   if (g_pPixelShader) g_pPixelShader->Release();
-  if (g_pDepthStencil) g_pDepthStencil->Release();
+  g_depthStencil.destroy();
+  //if (g_pDepthStencil) g_pDepthStencil->Release();
   //if (g_pDepthStencilView) g_pDepthStencilView->Release();
   g_depthStencilView.destroy();
-  if (g_pRenderTargetView) g_pRenderTargetView->Release();
-  if (g_pSwapChain) g_pSwapChain->Release();
+  //if (g_pRenderTargetView) g_pRenderTargetView->Release();
+  g_renderTargetView.destroy();
+  //if (g_pSwapChain) g_pSwapChain->Release();
+  g_swapChain.destroy();
   // Destroy Device
   //if (g_device.m_device) g_device.m_device->Release();
   g_UI.destroy();
@@ -604,14 +493,14 @@ void
 Render() {
   // Clear the back buffer
   float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
-  g_deviceContext.ClearRenderTargetView(g_pRenderTargetView, ClearColor);
+  g_deviceContext.ClearRenderTargetView(g_renderTargetView.m_renderTargetView, ClearColor);
   // Clear the depth buffer to 1.0 (max depth)
   g_deviceContext.ClearDepthStencilView(g_depthStencilView.m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
   
-  g_deviceContext.OMSetRenderTargets(1, &g_pRenderTargetView, g_depthStencilView.m_depthStencilView);
-  g_deviceContext.RSSetViewports(1, &vp);
+  g_deviceContext.OMSetRenderTargets(1, &g_renderTargetView.m_renderTargetView, g_depthStencilView.m_depthStencilView);
+  g_deviceContext.RSSetViewports(1, &g_viewport.m_viewport);
 
-  g_deviceContext.IASetInputLayout(g_pVertexLayout);
+  g_deviceContext.IASetInputLayout(g_inputLayout.m_inputLayout);
   g_deviceContext.IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
   g_deviceContext.IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
   g_deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -623,11 +512,11 @@ Render() {
   g_deviceContext.VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
   g_deviceContext.PSSetShader(g_pPixelShader, nullptr, 0);
   g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
-  g_deviceContext.PSSetShaderResources(0, 1, &g_pTextureRV);
-  g_deviceContext.PSSetSamplers(0, 1, &g_pSamplerLinear);
+  g_deviceContext.PSSetShaderResources(0, 1, &g_ModelTexture.m_textureFromImg);
+  g_deviceContext.PSSetSamplers(0, 1, &g_samplerLineal.m_sampler);
   g_deviceContext.DrawIndexed(LD.numIndex, 0, 0);
 
   g_UI.render();
   // Present our back buffer to our front buffer
-  g_pSwapChain->Present(0, 0);
+  g_swapChain.present();
 }

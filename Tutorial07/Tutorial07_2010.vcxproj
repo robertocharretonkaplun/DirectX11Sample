@@ -421,11 +421,16 @@
     <ClCompile Include="src\DepthStencilView.cpp" />
     <ClCompile Include="src\Device.cpp" />
     <ClCompile Include="src\DeviceContext.cpp" />
+    <ClCompile Include="src\InputLayout.cpp" />
     <ClCompile Include="src\ModelLoader.cpp" />
+    <ClCompile Include="src\RenderTargetView.cpp" />
+    <ClCompile Include="src\SamplerState.cpp" />
+    <ClCompile Include="src\SwapChain.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\Tutorial07.cpp" />
     <ClCompile Include="src\UserInterface.cpp" />
+    <ClCompile Include="src\Viewport.cpp" />
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -441,14 +446,19 @@
     <ClInclude Include="Include\DepthStencilView.h" />
     <ClInclude Include="Include\Device.h" />
     <ClInclude Include="Include\DeviceContext.h" />
+    <ClInclude Include="Include\InputLayout.h" />
     <ClInclude Include="Include\ModelLoader.h" />
     <ClInclude Include="Include\OBJ_Loader.h" />
     <ClInclude Include="Include\Prerequisites.h" />
+    <ClInclude Include="Include\RenderTargetView.h" />
     <ClInclude Include="Include\Resource.h" />
     <ClInclude Include="Include\CTime.h" />
+    <ClInclude Include="Include\SamplerState.h" />
+    <ClInclude Include="Include\SwapChain.h" />
     <ClInclude Include="Include\Texture.h" />
     <ClInclude Include="Include\Transform.h" />
     <ClInclude Include="Include\UserInterface.h" />
+    <ClInclude Include="Include\Viewport.h" />
     <ClInclude Include="Include\Window.h" />
     <CLInclude Include="resource.h" />
     <ResourceCompile Include="Tutorial07.rc" />
