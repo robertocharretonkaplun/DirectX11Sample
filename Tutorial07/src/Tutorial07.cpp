@@ -11,15 +11,16 @@
 #include "DepthStencilView.h"
 #include "Viewport.h"
 #include "Texture.h"
+#include "ShaderProgram.h"
 #include "SamplerState.h"
-#include "InputLayout.h"
+//#include "InputLayout.h"
 #include "ModelLoader.h"
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
 
-ID3D11VertexShader*                 g_pVertexShader = nullptr;
-ID3D11PixelShader*                  g_pPixelShader = nullptr;
+//ID3D11VertexShader*                 g_pVertexShader = nullptr;
+//ID3D11PixelShader*                  g_pPixelShader = nullptr;
 ID3D11Buffer*                       g_pVertexBuffer = nullptr;
 ID3D11Buffer*                       g_pIndexBuffer = nullptr;
 ID3D11Buffer*                       g_Camera = nullptr;
@@ -40,7 +41,8 @@ Viewport                            g_viewport;
 Texture                             g_depthStencil;
 Texture                             g_ModelTexture;
 Texture                             g_backBuffer;
-InputLayout                         g_inputLayout;
+//InputLayout                         g_inputLayout;
+ShaderProgram                       g_shaderProgram;
 SamplerState                        g_samplerLineal;
 Camera                              g_cam;
 CTime                               g_Time;
@@ -162,25 +164,25 @@ InitDevice() {
   g_viewport.init(g_window);
 
   // Compile the vertex shader
-  ID3DBlob* pVSBlob = nullptr;
-  hr = CompileShaderFromFile("Tutorial07.fx", "VS", "vs_4_0", &pVSBlob);
-  if (FAILED(hr))
-  {
-    MessageBox(nullptr,
-      "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
-    return hr;
-  }
-
-  // Create the vertex shader
-  hr = g_device.CreateVertexShader(pVSBlob->GetBufferPointer(), 
-                                   pVSBlob->GetBufferSize(), 
-                                   nullptr, 
-                                   &g_pVertexShader);
-  if (FAILED(hr))
-  {
-    pVSBlob->Release();
-    return hr;
-  }
+  //ID3DBlob* pVSBlob = nullptr;
+  //hr = CompileShaderFromFile("Tutorial07.fx", "VS", "vs_4_0", &pVSBlob);
+  //if (FAILED(hr))
+  //{
+  //  MessageBox(nullptr,
+  //    "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
+  //  return hr;
+  //}
+  //
+  //// Create the vertex shader
+  //hr = g_device.CreateVertexShader(pVSBlob->GetBufferPointer(), 
+  //                                 pVSBlob->GetBufferSize(), 
+  //                                 nullptr, 
+  //                                 &g_pVertexShader);
+  //if (FAILED(hr))
+  //{
+  //  pVSBlob->Release();
+  //  return hr;
+  //}
 
   // Define the input layout
   std::vector<D3D11_INPUT_ELEMENT_DESC> Layout;
@@ -206,32 +208,32 @@ InitDevice() {
   Layout.push_back(texcoord);
 
   // Create the input layout
-  g_inputLayout.init(g_device, Layout, pVSBlob);
-  pVSBlob->Release();
-  if (FAILED(hr))
-    return hr;
-
-  // Set the input layout
-
-  // Compile the pixel shader
-  ID3DBlob* pPSBlob = nullptr;
-  hr = CompileShaderFromFile("Tutorial07.fx", "PS", "ps_4_0", &pPSBlob);
-  if (FAILED(hr))
-  {
-    MessageBox(nullptr,
-      "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
-    return hr;
-  }
-
-  // Create the pixel shader
-  hr = g_device.CreatePixelShader(pPSBlob->GetBufferPointer(), 
-                                       pPSBlob->GetBufferSize(), 
-                                       nullptr, 
-                                       &g_pPixelShader);
-  pPSBlob->Release();
-  if (FAILED(hr))
-    return hr;
-
+  //g_inputLayout.init(g_device, Layout, pVSBlob);
+  //pVSBlob->Release();
+  //if (FAILED(hr))
+  //  return hr;
+  //
+  //// Set the input layout
+  //
+  //// Compile the pixel shader
+  //ID3DBlob* pPSBlob = nullptr;
+  //hr = CompileShaderFromFile("Tutorial07.fx", "PS", "ps_4_0", &pPSBlob);
+  //if (FAILED(hr))
+  //{
+  //  MessageBox(nullptr,
+  //    "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
+  //  return hr;
+  //}
+  //
+  //// Create the pixel shader
+  //hr = g_device.CreatePixelShader(pPSBlob->GetBufferPointer(), 
+  //                                     pPSBlob->GetBufferSize(), 
+  //                                     nullptr, 
+  //                                     &g_pPixelShader);
+  //pPSBlob->Release();
+  //if (FAILED(hr))
+  //  return hr;
+  g_shaderProgram.init(g_device, "Tutorial07.fx", Layout);
   
   // Load Model
   LD = g_modelLoader.Load("Pistol.obj");
@@ -281,16 +283,6 @@ InitDevice() {
   // Load the Texture
   g_ModelTexture.init(g_device, "GunAlbedo.dds");
 
-  // Create the sample state
-  //D3D11_SAMPLER_DESC sampDesc;
-  //memset(&sampDesc, 0, sizeof(sampDesc));
-  //sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-  //sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-  //sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-  //sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-  //sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-  //sampDesc.MinLOD = 0;
-  //sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
   g_samplerLineal.init(g_device);
   //hr = g_device.CreateSamplerState(&sampDesc, &g_pSamplerLinear);
   
@@ -406,8 +398,10 @@ destroy() {
   if (g_pVertexBuffer) g_pVertexBuffer->Release();
   if (g_pIndexBuffer) g_pIndexBuffer->Release();
   //if (g_pVertexLayout) g_pVertexLayout->Release();
-  if (g_pVertexShader) g_pVertexShader->Release();
-  if (g_pPixelShader) g_pPixelShader->Release();
+  //if (g_pVertexShader) g_pVertexShader->Release();
+  //if (g_pPixelShader) g_pPixelShader->Release();
+
+  g_shaderProgram.destroy();
   g_depthStencil.destroy();
   //if (g_pDepthStencil) g_pDepthStencil->Release();
   //if (g_pDepthStencilView) g_pDepthStencilView->Release();
@@ -500,17 +494,17 @@ Render() {
   g_deviceContext.OMSetRenderTargets(1, &g_renderTargetView.m_renderTargetView, g_depthStencilView.m_depthStencilView);
   g_deviceContext.RSSetViewports(1, &g_viewport.m_viewport);
 
-  g_deviceContext.IASetInputLayout(g_inputLayout.m_inputLayout);
+  g_deviceContext.IASetInputLayout(g_shaderProgram.m_inputLayout.m_inputLayout);
   g_deviceContext.IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
   g_deviceContext.IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
   g_deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   
 
   // Render the cube
-  g_deviceContext.VSSetShader(g_pVertexShader, nullptr, 0);
+  g_deviceContext.VSSetShader(g_shaderProgram.m_VertexShader, nullptr, 0);
   g_deviceContext.VSSetConstantBuffers(0, 1, &g_Camera);
   g_deviceContext.VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
-  g_deviceContext.PSSetShader(g_pPixelShader, nullptr, 0);
+  g_deviceContext.PSSetShader(g_shaderProgram.m_PixelShader, nullptr, 0);
   g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
   g_deviceContext.PSSetShaderResources(0, 1, &g_ModelTexture.m_textureFromImg);
   g_deviceContext.PSSetSamplers(0, 1, &g_samplerLineal.m_sampler);

@@ -31,4 +31,5 @@ InputLayout::render() {
 
 void 
 InputLayout::destroy() {
+  SAFE_RELEASE(m_inputLayout);
 }
