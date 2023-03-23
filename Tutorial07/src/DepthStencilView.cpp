@@ -1,5 +1,6 @@
 #include "DepthStencilView.h"
 #include "Device.h"
+#include "DeviceContext.h"
 
 void 
 DepthStencilView::init(Device device, ID3D11Resource* depthStencil, DXGI_FORMAT Format) {
@@ -27,7 +28,8 @@ DepthStencilView::update() {
 }
 
 void 
-DepthStencilView::render() {
+DepthStencilView::render(DeviceContext& deviceContext) {
+  deviceContext.ClearDepthStencilView(m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 }
 
 void 

@@ -1,7 +1,8 @@
 #include "RenderTargetView.h"
 #include "Device.h"
 #include "Texture.h"
-
+#include "DeviceContext.h"
+#include "DepthStencilView.h"
 void 
 RenderTargetView::init(Device device, Texture backBuffer, DXGI_FORMAT Format) {
   if (device.m_device == nullptr) {
@@ -25,7 +26,10 @@ RenderTargetView::update() {
 }
 
 void 
-RenderTargetView::render() {
+RenderTargetView::render(DeviceContext & deviceContext, DepthStencilView & depthStencilView, float ClearColor[4])
+{
+  deviceContext.ClearRenderTargetView(m_renderTargetView, ClearColor);
+  deviceContext.OMSetRenderTargets(1, &m_renderTargetView, depthStencilView.m_depthStencilView);
 }
 
 void 

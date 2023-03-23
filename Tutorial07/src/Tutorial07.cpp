@@ -26,7 +26,7 @@ ID3D11Buffer*                       g_pIndexBuffer = nullptr;
 ID3D11Buffer*                       g_Camera = nullptr;
 ID3D11Buffer*                       g_pCBChangesEveryFrame = nullptr;
 //ID3D11SamplerState*                 g_pSamplerLinear = nullptr;
-XMMATRIX                            g_World;
+//XMMATRIX                            g_World;
 XMMATRIX                            g_View;
 XMMATRIX                            g_Projection;
 XMFLOAT4                            g_vMeshColor(1, 1, 1, 1);
@@ -154,35 +154,20 @@ HRESULT
 InitDevice() {
   HRESULT hr = S_OK;
   g_swapChain.init(g_device, g_deviceContext, g_backBuffer, g_window);
+  
   g_renderTargetView.init(g_device, g_backBuffer, DXGI_FORMAT_R8G8B8A8_UNORM);
+  
   g_depthStencil.init(g_device, 
                       g_window.m_width, 
                       g_window.m_height,
                       DXGI_FORMAT_D24_UNORM_S8_UINT, 
                       D3D11_BIND_DEPTH_STENCIL);
-  g_depthStencilView.init(g_device, g_depthStencil.m_texture, DXGI_FORMAT_D24_UNORM_S8_UINT);
-  g_viewport.init(g_window);
 
-  // Compile the vertex shader
-  //ID3DBlob* pVSBlob = nullptr;
-  //hr = CompileShaderFromFile("Tutorial07.fx", "VS", "vs_4_0", &pVSBlob);
-  //if (FAILED(hr))
-  //{
-  //  MessageBox(nullptr,
-  //    "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
-  //  return hr;
-  //}
-  //
-  //// Create the vertex shader
-  //hr = g_device.CreateVertexShader(pVSBlob->GetBufferPointer(), 
-  //                                 pVSBlob->GetBufferSize(), 
-  //                                 nullptr, 
-  //                                 &g_pVertexShader);
-  //if (FAILED(hr))
-  //{
-  //  pVSBlob->Release();
-  //  return hr;
-  //}
+  g_depthStencilView.init(g_device, 
+                          g_depthStencil.m_texture, 
+                          DXGI_FORMAT_D24_UNORM_S8_UINT);
+  
+  g_viewport.init(g_window);
 
   // Define the input layout
   std::vector<D3D11_INPUT_ELEMENT_DESC> Layout;
@@ -207,39 +192,13 @@ InitDevice() {
   texcoord.InstanceDataStepRate = 0;
   Layout.push_back(texcoord);
 
-  // Create the input layout
-  //g_inputLayout.init(g_device, Layout, pVSBlob);
-  //pVSBlob->Release();
-  //if (FAILED(hr))
-  //  return hr;
-  //
-  //// Set the input layout
-  //
-  //// Compile the pixel shader
-  //ID3DBlob* pPSBlob = nullptr;
-  //hr = CompileShaderFromFile("Tutorial07.fx", "PS", "ps_4_0", &pPSBlob);
-  //if (FAILED(hr))
-  //{
-  //  MessageBox(nullptr,
-  //    "The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file.", "Error", MB_OK);
-  //  return hr;
-  //}
-  //
-  //// Create the pixel shader
-  //hr = g_device.CreatePixelShader(pPSBlob->GetBufferPointer(), 
-  //                                     pPSBlob->GetBufferSize(), 
-  //                                     nullptr, 
-  //                                     &g_pPixelShader);
-  //pPSBlob->Release();
-  //if (FAILED(hr))
-  //  return hr;
+  
   g_shaderProgram.init(g_device, "Tutorial07.fx", Layout);
   
   // Load Model
   LD = g_modelLoader.Load("Pistol.obj");
-  // Ejemplo
+
   // Create vertex buffer
-  
   D3D11_BUFFER_DESC bd;
   memset(&bd,0, sizeof(bd));
   bd.Usage = D3D11_USAGE_DEFAULT;
@@ -284,11 +243,6 @@ InitDevice() {
   g_ModelTexture.init(g_device, "GunAlbedo.dds");
 
   g_samplerLineal.init(g_device);
-  //hr = g_device.CreateSamplerState(&sampDesc, &g_pSamplerLinear);
-  
-
-  // Initialize the world matrices
-  g_World = XMMatrixIdentity();
 
   // Initialize the view matrix
   XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, -30.0f);
@@ -297,7 +251,10 @@ InitDevice() {
   g_View = XMMatrixLookAtLH(Eye, At, Up);
 
   // Initialize the projection matrix
-  g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, g_window.m_width / (FLOAT)g_window.m_height, 0.01f, 100.0f);
+  g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, 
+                                          g_window.m_width / (FLOAT)g_window.m_height, 
+                                          0.01f, 
+                                          100.0f);
 
   g_cam.mView = XMMatrixTranspose(g_View);
   g_cam.mProjection = XMMatrixTranspose(g_Projection);
@@ -360,17 +317,10 @@ update(float deltaTime) {
   // Update variables that change once per frame
   //speed += .0002f;
   // Rotate cube around the origin
-  g_World = XMMatrixScaling(g_transform.m_scale.x, 
-                            g_transform.m_scale.y, 
-                            g_transform.m_scale.z) * 
-            XMMatrixRotationRollPitchYaw(g_transform.m_rotation.x,
-                                         g_transform.m_rotation.y,
-                                         g_transform.m_rotation.z) *
-            XMMatrixTranslation(g_transform.m_position.x, 
-                                g_transform.m_position.y, 
-                                g_transform.m_position.z);
+  
+  g_transform.update();
   CBChangesEveryFrame cb;
-  cb.mWorld = XMMatrixTranspose(g_World);
+  cb.mWorld = XMMatrixTranspose(g_transform.m_matrix);
   cb.vMeshColor = g_vMeshColor;
   // Update Data
   // Update Mesh buffers
@@ -385,33 +335,18 @@ update(float deltaTime) {
 void 
 destroy() {
   g_deviceContext.destroy();
-
-  //if (g_pSamplerLinear) g_pSamplerLinear->Release();
   g_samplerLineal.destroy();
-  //if (g_pTextureRV) g_pTextureRV->Release();
   g_ModelTexture.destroy();
   g_modelLoader.destroy();
-  //if (g_pCBNeverChanges) g_pCBNeverChanges->Release();
-  //if (g_pCBChangeOnResize) g_pCBChangeOnResize->Release();
   if (g_Camera) g_Camera->Release();
   if (g_pCBChangesEveryFrame) g_pCBChangesEveryFrame->Release();
   if (g_pVertexBuffer) g_pVertexBuffer->Release();
   if (g_pIndexBuffer) g_pIndexBuffer->Release();
-  //if (g_pVertexLayout) g_pVertexLayout->Release();
-  //if (g_pVertexShader) g_pVertexShader->Release();
-  //if (g_pPixelShader) g_pPixelShader->Release();
-
   g_shaderProgram.destroy();
   g_depthStencil.destroy();
-  //if (g_pDepthStencil) g_pDepthStencil->Release();
-  //if (g_pDepthStencilView) g_pDepthStencilView->Release();
   g_depthStencilView.destroy();
-  //if (g_pRenderTargetView) g_pRenderTargetView->Release();
   g_renderTargetView.destroy();
-  //if (g_pSwapChain) g_pSwapChain->Release();
   g_swapChain.destroy();
-  // Destroy Device
-  //if (g_device.m_device) g_device.m_device->Release();
   g_UI.destroy();
   g_device.destroy();
 }
@@ -487,30 +422,38 @@ void
 Render() {
   // Clear the back buffer
   float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
-  g_deviceContext.ClearRenderTargetView(g_renderTargetView.m_renderTargetView, ClearColor);
-  // Clear the depth buffer to 1.0 (max depth)
-  g_deviceContext.ClearDepthStencilView(g_depthStencilView.m_depthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+  g_depthStencilView.render(g_deviceContext);
+  g_renderTargetView.render(g_deviceContext, g_depthStencilView, ClearColor);
   
-  g_deviceContext.OMSetRenderTargets(1, &g_renderTargetView.m_renderTargetView, g_depthStencilView.m_depthStencilView);
+  // Configurar el viewport
   g_deviceContext.RSSetViewports(1, &g_viewport.m_viewport);
 
+  // Establecer el estado de entrada
   g_deviceContext.IASetInputLayout(g_shaderProgram.m_inputLayout.m_inputLayout);
   g_deviceContext.IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
   g_deviceContext.IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
   g_deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-  
 
-  // Render the cube
+  // Establecer los shaders
   g_deviceContext.VSSetShader(g_shaderProgram.m_VertexShader, nullptr, 0);
+  g_deviceContext.PSSetShader(g_shaderProgram.m_PixelShader, nullptr, 0);
+
+  // Establecer los constant buffers
   g_deviceContext.VSSetConstantBuffers(0, 1, &g_Camera);
   g_deviceContext.VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
-  g_deviceContext.PSSetShader(g_shaderProgram.m_PixelShader, nullptr, 0);
   g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
+
+  // Establecer las texturas y samplers
   g_deviceContext.PSSetShaderResources(0, 1, &g_ModelTexture.m_textureFromImg);
   g_deviceContext.PSSetSamplers(0, 1, &g_samplerLineal.m_sampler);
+
+  // Dibujar
   g_deviceContext.DrawIndexed(LD.numIndex, 0, 0);
 
+  // Renderizar la UI
   g_UI.render();
-  // Present our back buffer to our front buffer
+
+  // Presentar el back buffer
   g_swapChain.present();
+
 }

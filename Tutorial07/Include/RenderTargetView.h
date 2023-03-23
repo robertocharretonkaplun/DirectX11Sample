@@ -2,6 +2,8 @@
 #include "Prerequisites.h"
 class Device;
 class Texture;
+class DeviceContext;
+class DepthStencilView;
 
 class 
 RenderTargetView {
@@ -16,7 +18,7 @@ public:
   update();
   
   void 
-  render();
+  render(DeviceContext & deviceContext, DepthStencilView & depthStencilView, float ClearColor[4]);
   
   void 
   destroy();

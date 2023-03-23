@@ -5,6 +5,14 @@ void
 ShaderProgram::init(Device device, 
                     std::string fileName, 
                     std::vector<D3D11_INPUT_ELEMENT_DESC> Layout) {
+  if (device.m_device == nullptr) {
+    WARNING("ERROR: ShaderProgram::init : [CREATION OF RESOURCE : FALSE] [CHECK FOR Device device] \n");
+    exit(1);
+  }
+  else if (Layout.size() <= 1) {
+    WARNING("ERROR: ShaderProgram::init : [CREATION OF RESOURCE : FALSE] [CHECK FOR std::vector<D3D11_INPUT_ELEMENT_DESC> Layout Size()] \n");
+    exit(1);
+  }
   m_shaderFileName = fileName;
   // Create the vertex shader
   CreateVertexShader(device);

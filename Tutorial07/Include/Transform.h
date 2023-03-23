@@ -27,6 +27,7 @@ public:
 	Vector3f m_position;
 	Vector3f m_rotation;
 	Vector3f m_scale;
+  XMMATRIX m_matrix;
   UserInterface UI;
 private:
   // UI data

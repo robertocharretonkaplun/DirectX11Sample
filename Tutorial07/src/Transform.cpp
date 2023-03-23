@@ -15,10 +15,21 @@ Transform::init() {
   m_scale.x = 1;
   m_scale.y = 1;
   m_scale.z = 1;
+
+  m_matrix = XMMatrixIdentity();
 }
 
 void 
 Transform::update() {
+  m_matrix = XMMatrixScaling(m_scale.x, 
+                             m_scale.y, 
+                             m_scale.z) * 
+            XMMatrixRotationRollPitchYaw(m_rotation.x,
+                                         m_rotation.y,
+                                         m_rotation.z) *
+            XMMatrixTranslation(m_position.x, 
+                                m_position.y, 
+                                m_position.z);
 }
 
 void 

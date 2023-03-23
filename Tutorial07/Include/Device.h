@@ -19,6 +19,11 @@ public:
   void 
   destroy();
 
+  /* This method is in charge of creating the render target view
+   * ID3D11Resource *pResource: This resources is the reference to the device resource.
+   * D3D11_RENDER_TARGET_VIEW_DESC *pDesc: 
+   * ID3D11RenderTargetView **ppRTView: 
+   */
   HRESULT
   CreateRenderTargetView(ID3D11Resource *pResource,
                          D3D11_RENDER_TARGET_VIEW_DESC *pDesc,

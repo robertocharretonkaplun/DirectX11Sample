@@ -2,8 +2,10 @@
 #include "Prerequisites.h"
 
 class Device;
-class DepthStencilView
-{
+class DeviceContext;
+
+class 
+DepthStencilView {
 public:
 	DepthStencilView() = default;
 	~DepthStencilView() { SAFE_RELEASE(m_depthStencilView); };
@@ -15,7 +17,7 @@ public:
 	update();
 
 	void
-	render();
+	render(DeviceContext& deviceContext);
 
 	void
 	destroy();
