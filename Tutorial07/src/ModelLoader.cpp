@@ -56,8 +56,8 @@ ModelLoader::Load(std::string objFileName) {
       loadedVertices++;
       percentage = (float)loadedVertices / (float)totalVertices * 100;
       WARNING("Cargando modelo: " << percentage << "% \n");
-    
     }
+
     // Load and set data to custom structure (Indices)
     LD.index.resize(Loader.LoadedIndices.size());
     for (int i = 0; i < LD.index.size(); i++) {

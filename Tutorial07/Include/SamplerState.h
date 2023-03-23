@@ -1,6 +1,7 @@
 #pragma once
 #include "Prerequisites.h"
 class Device;
+class DeviceContext;
 
 class 
 SamplerState {
@@ -15,7 +16,7 @@ public:
   update();
   
   void 
-  render();
+  render(DeviceContext& deviceContext);
   
   void 
   destroy();

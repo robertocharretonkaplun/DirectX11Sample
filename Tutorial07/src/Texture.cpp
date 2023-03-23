@@ -1,5 +1,6 @@
 #include "Texture.h"
 #include "Device.h"
+#include "DeviceContext.h"
 
 Texture::~Texture() {
 	
@@ -73,6 +74,13 @@ Texture::init(Device device,
 }
 
 void 
+Texture::render(DeviceContext& deviceContext, unsigned int StartSlot) {
+	if (m_textureFromImg != nullptr) {
+		deviceContext.PSSetShaderResources(StartSlot, 1, &m_textureFromImg);
+	}
+}
+
+void
 Texture::destroy() {
 	if (m_texture != nullptr) {
 		SAFE_RELEASE(m_texture);

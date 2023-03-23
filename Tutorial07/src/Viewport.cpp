@@ -1,5 +1,6 @@
 #include "Viewport.h"
 #include "Window.h"
+#include "DeviceContext.h"
 
 void 
 Viewport::init(Window window) {
@@ -20,7 +21,8 @@ Viewport::update() {
 }
 
 void 
-Viewport::render() {
+Viewport::render(DeviceContext & deviceContext) {
+  deviceContext.RSSetViewports(1, &m_viewport);
 }
 
 void 

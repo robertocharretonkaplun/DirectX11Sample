@@ -1,6 +1,7 @@
 #pragma once
 #include "Prerequisites.h"
 class Window;
+class DeviceContext;
 
 class 
 Viewport {
@@ -15,7 +16,7 @@ public:
   update();
   
   void 
-  render();
+  render(DeviceContext& deviceContext);
   
   void 
   destroy();

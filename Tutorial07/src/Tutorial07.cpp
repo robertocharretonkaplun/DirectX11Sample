@@ -15,14 +15,16 @@
 #include "SamplerState.h"
 //#include "InputLayout.h"
 #include "ModelLoader.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
 
 //ID3D11VertexShader*                 g_pVertexShader = nullptr;
 //ID3D11PixelShader*                  g_pPixelShader = nullptr;
-ID3D11Buffer*                       g_pVertexBuffer = nullptr;
-ID3D11Buffer*                       g_pIndexBuffer = nullptr;
+//ID3D11Buffer*                       g_pVertexBuffer = nullptr;
+//ID3D11Buffer*                       g_pIndexBuffer = nullptr;
 ID3D11Buffer*                       g_Camera = nullptr;
 ID3D11Buffer*                       g_pCBChangesEveryFrame = nullptr;
 //ID3D11SamplerState*                 g_pSamplerLinear = nullptr;
@@ -41,6 +43,8 @@ Viewport                            g_viewport;
 Texture                             g_depthStencil;
 Texture                             g_ModelTexture;
 Texture                             g_backBuffer;
+VertexBuffer                        g_vertexBuffer;
+IndexBuffer                         g_indexBuffer;
 //InputLayout                         g_inputLayout;
 ShaderProgram                       g_shaderProgram;
 SamplerState                        g_samplerLineal;
@@ -197,45 +201,58 @@ InitDevice() {
   
   // Load Model
   LD = g_modelLoader.Load("Pistol.obj");
-
+  // Vertex e Index Buffer se van a trasladar a la clase Actor
+  
   // Create vertex buffer
-  D3D11_BUFFER_DESC bd;
-  memset(&bd,0, sizeof(bd));
-  bd.Usage = D3D11_USAGE_DEFAULT;
-  //bd.ByteWidth = sizeof(SimpleVertex) * 24;
-  bd.ByteWidth = sizeof(SimpleVertex) * LD.numVertex;
-  bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  bd.CPUAccessFlags = 0;
-  D3D11_SUBRESOURCE_DATA InitData;
-  memset(&InitData, 0, sizeof(InitData));
-  InitData.pSysMem = LD.vertex.data();
-  hr = g_device.CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
-  if (FAILED(hr))
-    return hr;
+  //D3D11_BUFFER_DESC bd;
+  //memset(&bd,0, sizeof(bd));
+  //bd.Usage = D3D11_USAGE_DEFAULT;
+  ////bd.ByteWidth = sizeof(SimpleVertex) * 24;
+  //bd.ByteWidth = sizeof(SimpleVertex) * LD.numVertex;
+  //bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+  //bd.CPUAccessFlags = 0;
+  //D3D11_SUBRESOURCE_DATA InitData;
+  //memset(&InitData, 0, sizeof(InitData));
+  //InitData.pSysMem = LD.vertex.data();
+  //hr = g_device.CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
+  //if (FAILED(hr))
+  //  return hr;
 
-  D3D11_BUFFER_DESC ib;
-  memset(&ib, 0, sizeof(ib));
-  ib.Usage = D3D11_USAGE_DEFAULT;
-  //bd.ByteWidth = sizeof(WORD) * 36;
-  ib.ByteWidth = sizeof(unsigned int) * LD.numIndex;
-  ib.BindFlags = D3D11_BIND_INDEX_BUFFER;
-  ib.CPUAccessFlags = 0;
-  InitData.pSysMem = LD.index.data();
-  hr = g_device.CreateBuffer(&ib, &InitData, &g_pIndexBuffer);
-  if (FAILED(hr))
-    return hr;
+  g_vertexBuffer.init(g_device, LD);
+
+  g_indexBuffer.init(g_device, LD);
+  //D3D11_BUFFER_DESC ib;
+  //memset(&ib, 0, sizeof(ib));
+  //ib.Usage = D3D11_USAGE_DEFAULT;
+  ////bd.ByteWidth = sizeof(WORD) * 36;
+  //ib.ByteWidth = sizeof(unsigned int) * LD.numIndex;
+  //ib.BindFlags = D3D11_BIND_INDEX_BUFFER;
+  //ib.CPUAccessFlags = 0;
+
+  //D3D11_SUBRESOURCE_DATA InitData;
+  //InitData.pSysMem = LD.index.data();
+  //hr = g_device.CreateBuffer(&ib, &InitData, &g_pIndexBuffer);
+  //if (FAILED(hr))
+  //  return hr;
 
   // Create the constant buffers
-  bd.Usage = D3D11_USAGE_DEFAULT;
-  bd.ByteWidth = sizeof(Camera);
-  bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  bd.CPUAccessFlags = 0;
-  hr = g_device.CreateBuffer(&bd, nullptr, &g_Camera);
+  D3D11_BUFFER_DESC CamBufferDesc;
+  memset(&CamBufferDesc, 0, sizeof(CamBufferDesc));
+  CamBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+  CamBufferDesc.ByteWidth = sizeof(Camera);
+  CamBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  CamBufferDesc.CPUAccessFlags = 0;
+  hr = g_device.CreateBuffer(&CamBufferDesc, nullptr, &g_Camera);
   if (FAILED(hr))
     return hr;
 
-  bd.ByteWidth = sizeof(CBChangesEveryFrame);
-  hr = g_device.CreateBuffer(&bd, nullptr, &g_pCBChangesEveryFrame);
+  D3D11_BUFFER_DESC ModelBufferDesc;
+  memset(&ModelBufferDesc, 0, sizeof(ModelBufferDesc));
+  ModelBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+  ModelBufferDesc.ByteWidth = sizeof(CBChangesEveryFrame);
+  ModelBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  ModelBufferDesc.CPUAccessFlags = 0;
+  hr = g_device.CreateBuffer(&ModelBufferDesc, nullptr, &g_pCBChangesEveryFrame);
   if (FAILED(hr))
     return hr;
 
@@ -340,8 +357,11 @@ destroy() {
   g_modelLoader.destroy();
   if (g_Camera) g_Camera->Release();
   if (g_pCBChangesEveryFrame) g_pCBChangesEveryFrame->Release();
-  if (g_pVertexBuffer) g_pVertexBuffer->Release();
-  if (g_pIndexBuffer) g_pIndexBuffer->Release();
+  g_vertexBuffer.destroy();
+  //if (g_pVertexBuffer) g_pVertexBuffer->Release();
+  g_indexBuffer.destroy();
+  //if (g_pIndexBuffer) g_pIndexBuffer->Release();
+
   g_shaderProgram.destroy();
   g_depthStencil.destroy();
   g_depthStencilView.destroy();
@@ -426,26 +446,27 @@ Render() {
   g_renderTargetView.render(g_deviceContext, g_depthStencilView, ClearColor);
   
   // Configurar el viewport
-  g_deviceContext.RSSetViewports(1, &g_viewport.m_viewport);
+  g_viewport.render(g_deviceContext);
 
-  // Establecer el estado de entrada
+  // Establecer el InputLayout
   g_deviceContext.IASetInputLayout(g_shaderProgram.m_inputLayout.m_inputLayout);
-  g_deviceContext.IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
-  g_deviceContext.IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
   g_deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   // Establecer los shaders
-  g_deviceContext.VSSetShader(g_shaderProgram.m_VertexShader, nullptr, 0);
-  g_deviceContext.PSSetShader(g_shaderProgram.m_PixelShader, nullptr, 0);
+  g_shaderProgram.render(g_deviceContext);
 
   // Establecer los constant buffers
   g_deviceContext.VSSetConstantBuffers(0, 1, &g_Camera);
+  
+  // Actor Constant buffer
+  g_vertexBuffer.render(g_deviceContext, 0);
+  g_indexBuffer.render(g_deviceContext);
   g_deviceContext.VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
   g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
 
   // Establecer las texturas y samplers
-  g_deviceContext.PSSetShaderResources(0, 1, &g_ModelTexture.m_textureFromImg);
-  g_deviceContext.PSSetSamplers(0, 1, &g_samplerLineal.m_sampler);
+  g_ModelTexture.render(g_deviceContext, 0);
+  g_samplerLineal.render(g_deviceContext);
 
   // Dibujar
   g_deviceContext.DrawIndexed(LD.numIndex, 0, 0);

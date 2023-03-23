@@ -1,5 +1,6 @@
 #include "ShaderProgram.h"
 #include "Device.h"
+#include "DeviceContext.h"
 
 void 
 ShaderProgram::init(Device device, 
@@ -27,7 +28,10 @@ ShaderProgram::update() {
 }
 
 void 
-ShaderProgram::render() {
+ShaderProgram::render(DeviceContext& deviceContext) {
+  // Establecer los shaders
+  deviceContext.VSSetShader(m_VertexShader, nullptr, 0);
+  deviceContext.PSSetShader(m_PixelShader, nullptr, 0);
 }
 
 void 

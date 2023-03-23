@@ -98,6 +98,12 @@
     <ClCompile Include="src\ShaderProgram.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\VertexBuffer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IndexBuffer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -185,6 +191,12 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Include\ShaderProgram.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\VertexBuffer.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\IndexBuffer.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>

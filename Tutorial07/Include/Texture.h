@@ -2,6 +2,7 @@
 #include "Prerequisites.h"
 #include "Commons.h"
 class Device;
+class DeviceContext;
 
 class 
 Texture {
@@ -23,7 +24,7 @@ public:
   update();
   
   void 
-  render();
+  render(DeviceContext & deviceContext, unsigned int StartSlot);
   
   void 
   destroy();

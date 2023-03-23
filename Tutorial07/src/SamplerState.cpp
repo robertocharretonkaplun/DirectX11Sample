@@ -1,5 +1,6 @@
 #include "SamplerState.h"
 #include "Device.h"
+#include "DeviceContext.h"
 
 void 
 SamplerState::init(Device device) {
@@ -32,7 +33,8 @@ SamplerState::update() {
 }
 
 void 
-SamplerState::render() {
+SamplerState::render(DeviceContext & deviceContext) {
+  deviceContext.PSSetSamplers(0, 1, &m_sampler);
 }
 
 void 

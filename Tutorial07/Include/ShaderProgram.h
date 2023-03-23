@@ -2,6 +2,7 @@
 #include "Prerequisites.h"
 #include "InputLayout.h"
 class Device;
+class DeviceContext;
 
 class 
 ShaderProgram {
@@ -18,7 +19,7 @@ public:
   update();
   
   void 
-  render();
+  render(DeviceContext& deviceContext);
   
   void 
   destroy();
