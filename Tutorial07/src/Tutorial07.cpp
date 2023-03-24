@@ -59,6 +59,10 @@ ModelLoader                         g_modelLoader;
 //D3D11_VIEWPORT vp;
 unsigned int stride = sizeof(SimpleVertex);
 unsigned int offset = 0;
+
+ID3D11Texture2D* imguiTexture;
+ID3D11RenderTargetView* imguiRTV;
+ID3D11ShaderResourceView* imguiSRV = nullptr;
 //--------------------------------------------------------------------------------------
 // Forward declarations
 //--------------------------------------------------------------------------------------
@@ -160,6 +164,8 @@ InitDevice() {
   g_swapChain.init(g_device, g_deviceContext, g_backBuffer, g_window);
   
   g_renderTargetView.init(g_device, g_backBuffer, DXGI_FORMAT_R8G8B8A8_UNORM);
+
+
   
   g_depthStencil.init(g_device, 
                       g_window.m_width, 
@@ -172,6 +178,10 @@ InitDevice() {
                           DXGI_FORMAT_D24_UNORM_S8_UINT);
   
   g_viewport.init(g_window);
+
+  
+
+  // Dibuja en el render target
 
   // Define the input layout
   std::vector<D3D11_INPUT_ELEMENT_DESC> Layout;
@@ -203,37 +213,35 @@ InitDevice() {
   LD = g_modelLoader.Load("Pistol.obj");
   // Vertex e Index Buffer se van a trasladar a la clase Actor
   
-  // Create vertex buffer
-  //D3D11_BUFFER_DESC bd;
-  //memset(&bd,0, sizeof(bd));
-  //bd.Usage = D3D11_USAGE_DEFAULT;
-  ////bd.ByteWidth = sizeof(SimpleVertex) * 24;
-  //bd.ByteWidth = sizeof(SimpleVertex) * LD.numVertex;
-  //bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  //bd.CPUAccessFlags = 0;
-  //D3D11_SUBRESOURCE_DATA InitData;
-  //memset(&InitData, 0, sizeof(InitData));
-  //InitData.pSysMem = LD.vertex.data();
-  //hr = g_device.CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
-  //if (FAILED(hr))
-  //  return hr;
+  
 
   g_vertexBuffer.init(g_device, LD);
 
   g_indexBuffer.init(g_device, LD);
-  //D3D11_BUFFER_DESC ib;
-  //memset(&ib, 0, sizeof(ib));
-  //ib.Usage = D3D11_USAGE_DEFAULT;
-  ////bd.ByteWidth = sizeof(WORD) * 36;
-  //ib.ByteWidth = sizeof(unsigned int) * LD.numIndex;
-  //ib.BindFlags = D3D11_BIND_INDEX_BUFFER;
-  //ib.CPUAccessFlags = 0;
+  
 
-  //D3D11_SUBRESOURCE_DATA InitData;
-  //InitData.pSysMem = LD.index.data();
-  //hr = g_device.CreateBuffer(&ib, &InitData, &g_pIndexBuffer);
-  //if (FAILED(hr))
-  //  return hr;
+  D3D11_TEXTURE2D_DESC textureDesc;
+  ZeroMemory(&textureDesc, sizeof(textureDesc));
+  textureDesc.Width = g_window.m_width;
+  textureDesc.Height = g_window.m_height;
+  textureDesc.MipLevels = 1;
+  textureDesc.ArraySize = 1;
+  textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  textureDesc.SampleDesc.Count = 1;
+  textureDesc.Usage = D3D11_USAGE_DEFAULT;
+  textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+  g_device.m_device->CreateTexture2D(&textureDesc, NULL, &imguiTexture);
+
+  // Crear una vista de render target para la textura de IMGUI
+  g_device.m_device->CreateRenderTargetView(imguiTexture, NULL, &imguiRTV);
+  
+  D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+  ZeroMemory(&srvDesc, sizeof(srvDesc));
+  srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+  srvDesc.Texture2D.MipLevels = 1;
+  srvDesc.Texture2D.MostDetailedMip = 0;
+  g_device.m_device->CreateShaderResourceView(imguiTexture, &srvDesc, &imguiSRV);
 
   // Create the constant buffers
   D3D11_BUFFER_DESC CamBufferDesc;
@@ -328,8 +336,20 @@ update(float deltaTime) {
   ImGui::End();
   g_transform.ui();
   g_modelLoader.ui();
+  bool Stage = true;
 
+  ImGui::Begin("Renderer", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+  ImTextureID texId = (ImTextureID)imguiSRV;
+  ImGui::Image(texId, ImVec2(g_window.m_width/2, g_window.m_height /2));
+  ImGui::End();
+  
+  ImGui::Begin("Model Properties", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
+  ImGui::End();
+  
+  ImGui::Begin("Stage", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+  ImGui::End();
   
   // Update variables that change once per frame
   //speed += .0002f;
@@ -440,11 +460,14 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 //--------------------------------------------------------------------------------------
 void 
 Render() {
+  // Configurar la textura IMGUI como la vista de renderizado
+  g_deviceContext.m_deviceContext->OMSetRenderTargets(1, &imguiRTV, NULL);
+
   // Clear the back buffer
   float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
   g_depthStencilView.render(g_deviceContext);
-  g_renderTargetView.render(g_deviceContext, g_depthStencilView, ClearColor);
-  
+  g_renderTargetView.render(g_deviceContext, g_depthStencilView, 1, ClearColor);
+
   // Configurar el viewport
   g_viewport.render(g_deviceContext);
 
@@ -457,12 +480,14 @@ Render() {
 
   // Establecer los constant buffers
   g_deviceContext.VSSetConstantBuffers(0, 1, &g_Camera);
-  
+
   // Actor Constant buffer
   g_vertexBuffer.render(g_deviceContext, 0);
   g_indexBuffer.render(g_deviceContext);
   g_deviceContext.VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
   g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
+  ID3D11ShaderResourceView* srvs[] = { imguiSRV };
+  g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, srvs);
 
   // Establecer las texturas y samplers
   g_ModelTexture.render(g_deviceContext, 0);
@@ -471,8 +496,16 @@ Render() {
   // Dibujar
   g_deviceContext.DrawIndexed(LD.numIndex, 0, 0);
 
+  // Copiar el back buffer a la textura IMGUI
+  g_swapChain.m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&g_backBuffer.m_texture);
+  g_deviceContext.m_deviceContext->CopyResource(imguiTexture, g_backBuffer.m_texture);
+  g_backBuffer.m_texture->Release();
+
   // Renderizar la UI
   g_UI.render();
+
+  // Restablecer la vista de renderizado original
+  g_deviceContext.m_deviceContext->OMSetRenderTargets(1, &g_renderTargetView.m_renderTargetView, g_depthStencilView.m_depthStencilView);
 
   // Presentar el back buffer
   g_swapChain.present();

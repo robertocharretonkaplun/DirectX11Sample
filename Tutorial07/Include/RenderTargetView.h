@@ -18,7 +18,7 @@ public:
   update();
   
   void 
-  render(DeviceContext & deviceContext, DepthStencilView & depthStencilView, float ClearColor[4]);
+  render(DeviceContext & deviceContext, DepthStencilView & depthStencilView, unsigned int numViews, float ClearColor[4]);
   
   void 
   destroy();

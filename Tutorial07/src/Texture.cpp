@@ -61,6 +61,9 @@ Texture::init(Device device,
 	if (BindFlags == D3D11_BIND_DEPTH_STENCIL) {
 		hr = device.CreateTexture2D(&desc, nullptr, &m_texture);
 	}
+	else if (BindFlags == D3D11_BIND_RENDER_TARGET) {
+		hr = device.CreateTexture2D(&desc, nullptr, &m_texture);
+	}
 
 	if (m_texture == nullptr) {
 		WARNING("ERROR: Texture::init : [CREATION OF RESOURCE : FALSE] [CHECK FOR m_texture] \n");

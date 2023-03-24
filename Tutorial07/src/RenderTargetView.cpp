@@ -26,10 +26,10 @@ RenderTargetView::update() {
 }
 
 void 
-RenderTargetView::render(DeviceContext & deviceContext, DepthStencilView & depthStencilView, float ClearColor[4])
+RenderTargetView::render(DeviceContext & deviceContext, DepthStencilView & depthStencilView, unsigned int numViews, float ClearColor[4])
 {
   deviceContext.ClearRenderTargetView(m_renderTargetView, ClearColor);
-  deviceContext.OMSetRenderTargets(1, &m_renderTargetView, depthStencilView.m_depthStencilView);
+  deviceContext.OMSetRenderTargets(numViews, &m_renderTargetView, depthStencilView.m_depthStencilView);
 }
 
 void 
