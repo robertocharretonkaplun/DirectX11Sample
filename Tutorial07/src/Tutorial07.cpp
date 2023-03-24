@@ -17,6 +17,8 @@
 #include "ModelLoader.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
@@ -331,6 +333,45 @@ update(float deltaTime) {
   ImGui::Begin("Textures");
   if (ImGui::Button("screenshot"))
   {
+    // Obtener el back buffer
+    g_swapChain.m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<LPVOID*>(&g_backBuffer.m_texture));
+
+    // Crear la textura en memoria
+    HDC hDC = GetDC(nullptr);
+    HBITMAP hBitmap = CreateCompatibleBitmap(hDC, g_window.m_width, g_window.m_height);
+    HDC hMemoryDC = CreateCompatibleDC(hDC);
+    SelectObject(hMemoryDC, hBitmap);
+
+    // Copiar el back buffer al contexto de dispositivo de la textura en memoria
+    BitBlt(hMemoryDC, 0, 0, g_window.m_width, g_window.m_height, hDC, 0, 0, SRCCOPY);
+
+    // Obtener los datos de píxeles del HBITMAP
+    BITMAPINFO bmi = { 0 };
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = g_window.m_width;
+    bmi.bmiHeader.biHeight = -g_window.m_height;
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+    std::vector<uint8_t> pixels(g_window.m_width * g_window.m_height * 4);
+    GetDIBits(hMemoryDC, hBitmap, 0, g_window.m_height, pixels.data(), &bmi, DIB_RGB_COLORS);
+
+    // Reordenar los datos de los píxeles de BGR a RGB
+    for (size_t i = 0; i < pixels.size(); i += 4) {
+      std::swap(pixels[i], pixels[i + 2]);
+    }
+
+    // Guardar los datos de píxeles en un archivo de imagen
+    stbi_write_png("screenshot.png", g_window.m_width, g_window.m_height, 4, pixels.data(), g_window.m_width * 4);
+
+    // Liberar los recursos
+    DeleteDC(hMemoryDC);
+    DeleteObject(hBitmap);
+    ReleaseDC(nullptr, hDC);
+    g_backBuffer.m_texture->Release();
+
+
+
   }
   ImGui::Image(g_ModelTexture.m_textureFromImg, ImVec2(50, 50));
   ImGui::End();
