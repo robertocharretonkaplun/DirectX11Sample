@@ -130,6 +130,28 @@ UserInterface::vec3Control(std::string label, float* values, float resetValues, 
 }
 
 void 
+UserInterface::menuBar() {
+  if (ImGui::BeginMainMenuBar())
+  {
+    if (ImGui::BeginMenu("File"))
+    {
+      ImGui::MenuItem("New", "Ctrl+N");
+      ImGui::MenuItem("Open", "Ctrl+O");
+      ImGui::MenuItem("Save", "Ctrl+S");
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Edit"))
+    {
+      ImGui::MenuItem("Copy", "Ctrl+C");
+      ImGui::MenuItem("Paste", "Ctrl+V");
+      ImGui::EndMenu();
+    }
+    ImGui::EndMainMenuBar();
+  }
+
+}
+
+void 
 UserInterface::darkStyle() {
   ImVec4* colors = ImGui::GetStyle().Colors;
   colors[ImGuiCol_Text] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);

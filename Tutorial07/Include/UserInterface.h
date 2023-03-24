@@ -28,6 +28,9 @@ public:
       float resetValues = 0.0f,
       float columnWidth = 100.0f);
 
+  void 
+  menuBar();
+
   void
   darkStyle();
   

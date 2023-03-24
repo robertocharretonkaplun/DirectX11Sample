@@ -331,21 +331,33 @@ update(float deltaTime) {
   bool show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
   ImGui::Begin("Textures");
+  g_UI.menuBar();
   if (ImGui::Button("screenshot"))
   {
     // Obtener el back buffer
     g_swapChain.m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<LPVOID*>(&g_backBuffer.m_texture));
 
+    // Obtener el HWND de la ventana de la aplicación
+    HWND hWnd = GetForegroundWindow();
+
+    // Obtener el DC de la ventana de la aplicación
+    HDC hDC = GetDC(hWnd);
+
+    // Obtener el tamaño de la ventana de la aplicación
+    RECT rect;
+    GetClientRect(hWnd, &rect);
+    int width = rect.right - rect.left;
+    int height = rect.bottom - rect.top;
+
     // Crear la textura en memoria
-    HDC hDC = GetDC(nullptr);
-    HBITMAP hBitmap = CreateCompatibleBitmap(hDC, g_window.m_width, g_window.m_height);
+    HBITMAP hBitmap = CreateCompatibleBitmap(hDC, width, height);
     HDC hMemoryDC = CreateCompatibleDC(hDC);
     SelectObject(hMemoryDC, hBitmap);
 
     // Copiar el back buffer al contexto de dispositivo de la textura en memoria
-    BitBlt(hMemoryDC, 0, 0, g_window.m_width, g_window.m_height, hDC, 0, 0, SRCCOPY);
+    BitBlt(hMemoryDC, 0, 0, width, height, hDC, 0, 0, SRCCOPY);
 
-    // Obtener los datos de píxeles del HBITMAP
+    /// Obtener los datos de píxeles del HBITMAP
     BITMAPINFO bmi = { 0 };
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = g_window.m_width;
@@ -364,12 +376,12 @@ update(float deltaTime) {
     // Guardar los datos de píxeles en un archivo de imagen
     stbi_write_png("screenshot.png", g_window.m_width, g_window.m_height, 4, pixels.data(), g_window.m_width * 4);
 
+
     // Liberar los recursos
     DeleteDC(hMemoryDC);
     DeleteObject(hBitmap);
-    ReleaseDC(nullptr, hDC);
+    ReleaseDC(hWnd, hDC);
     g_backBuffer.m_texture->Release();
-
 
 
   }
