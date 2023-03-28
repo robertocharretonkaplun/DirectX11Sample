@@ -10,7 +10,7 @@ Adem�s, el repositorio **[https://github.com/robertocharretonkaplun/DirectX11S
 
 En conjunto, estas herramientas hacen que el proceso de desarrollo de aplicaciones gr�ficas sea m�s accesible y eficiente para los desarrolladores, permiti�ndoles concentrarse en la creaci�n de efectos visuales impresionantes en lugar de dedicar tiempo a crear herramientas y funciones desde cero. Con el uso de DirectX 11 y las bibliotecas Imgui y OBJ Loader, los desarrolladores pueden crear f�cilmente aplicaciones gr�ficas de alta calidad que impresionen a los usuarios con efectos visuales asombrosos.
 
-![Object model loaded from OBJ Loader](bin\screenshot.png)
+![Object model loaded from OBJ Loader](Tutorial07/bin/screenshot.png)
 
 # IMGUI
 
