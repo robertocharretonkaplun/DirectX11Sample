@@ -426,6 +426,7 @@
     <ClCompile Include="src\ModelLoader.cpp" />
     <ClCompile Include="src\RenderTargetView.cpp" />
     <ClCompile Include="src\SamplerState.cpp" />
+    <ClCompile Include="src\Screenshot.cpp" />
     <ClCompile Include="src\ShaderProgram.cpp" />
     <ClCompile Include="src\SwapChain.cpp" />
     <ClCompile Include="src\Texture.cpp" />
@@ -458,6 +459,7 @@
     <ClInclude Include="Include\Resource.h" />
     <ClInclude Include="Include\CTime.h" />
     <ClInclude Include="Include\SamplerState.h" />
+    <ClInclude Include="Include\Screenshot.h" />
     <ClInclude Include="Include\ShaderProgram.h" />
     <ClInclude Include="Include\stb_image_write.h" />
     <ClInclude Include="Include\SwapChain.h" />

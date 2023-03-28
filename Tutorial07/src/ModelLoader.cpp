@@ -26,7 +26,6 @@ ModelLoader::destroy() {
 
 LoadData 
 ModelLoader::Load(std::string objFileName) {
-
   // Temporal Load Data
   LoadData LD;
   objl::Loader Loader;

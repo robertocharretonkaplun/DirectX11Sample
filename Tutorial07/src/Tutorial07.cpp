@@ -17,8 +17,9 @@
 #include "ModelLoader.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
+#include "Screenshot.h"
+//#define STB_IMAGE_WRITE_IMPLEMENTATION
+//#include "stb_image_write.h"
 //--------------------------------------------------------------------------------------
 // Global Variables
 //--------------------------------------------------------------------------------------
@@ -58,6 +59,7 @@ float                               g_movementSpeed = 5.0f;
 float                               g_speed;
 LoadData LD;
 ModelLoader                         g_modelLoader;
+Screenshot                          g_captureScreenshot;
 //D3D11_VIEWPORT vp;
 unsigned int stride = sizeof(SimpleVertex);
 unsigned int offset = 0;
@@ -65,6 +67,7 @@ unsigned int offset = 0;
 ID3D11Texture2D* imguiTexture;
 ID3D11RenderTargetView* imguiRTV;
 ID3D11ShaderResourceView* imguiSRV = nullptr;
+
 //--------------------------------------------------------------------------------------
 // Forward declarations
 //--------------------------------------------------------------------------------------
@@ -290,6 +293,8 @@ InitDevice() {
   // Initialize Classes
   g_UI.init(g_window.m_hWnd, g_device.m_device, g_deviceContext.m_deviceContext);
   g_transform.init();
+
+
   return S_OK;
 }
 
@@ -323,6 +328,7 @@ Input(float deltaTime) {
 
 }
 
+
 // Esta funcion esta encargada de actualizar la LOGICA del programa
 void 
 update(float deltaTime) {
@@ -331,77 +337,22 @@ update(float deltaTime) {
   bool show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
   ImGui::Begin("Textures");
-  g_UI.menuBar();
-  if (ImGui::Button("screenshot"))
-  {
-    // Obtener el back buffer
-    g_swapChain.m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<LPVOID*>(&g_backBuffer.m_texture));
-
-    // Obtener el HWND de la ventana de la aplicación
-    HWND hWnd = GetForegroundWindow();
-
-    // Obtener el DC de la ventana de la aplicación
-    HDC hDC = GetDC(hWnd);
-
-    // Obtener el tamaño de la ventana de la aplicación
-    RECT rect;
-    GetClientRect(hWnd, &rect);
-    int width = rect.right - rect.left;
-    int height = rect.bottom - rect.top;
-
-    // Crear la textura en memoria
-    HBITMAP hBitmap = CreateCompatibleBitmap(hDC, width, height);
-    HDC hMemoryDC = CreateCompatibleDC(hDC);
-    SelectObject(hMemoryDC, hBitmap);
-
-    // Copiar el back buffer al contexto de dispositivo de la textura en memoria
-    BitBlt(hMemoryDC, 0, 0, width, height, hDC, 0, 0, SRCCOPY);
-
-    /// Obtener los datos de píxeles del HBITMAP
-    BITMAPINFO bmi = { 0 };
-    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = g_window.m_width;
-    bmi.bmiHeader.biHeight = -g_window.m_height;
-    bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biBitCount = 32;
-    bmi.bmiHeader.biCompression = BI_RGB;
-    std::vector<uint8_t> pixels(g_window.m_width * g_window.m_height * 4);
-    GetDIBits(hMemoryDC, hBitmap, 0, g_window.m_height, pixels.data(), &bmi, DIB_RGB_COLORS);
-
-    // Reordenar los datos de los píxeles de BGR a RGB
-    for (size_t i = 0; i < pixels.size(); i += 4) {
-      std::swap(pixels[i], pixels[i + 2]);
-    }
-
-    // Guardar los datos de píxeles en un archivo de imagen
-    stbi_write_png("screenshot.png", g_window.m_width, g_window.m_height, 4, pixels.data(), g_window.m_width * 4);
-
-
-    // Liberar los recursos
-    DeleteDC(hMemoryDC);
-    DeleteObject(hBitmap);
-    ReleaseDC(hWnd, hDC);
-    g_backBuffer.m_texture->Release();
-
-
-  }
+  g_UI.menuBar(g_window, g_swapChain, g_backBuffer);
+  g_captureScreenshot.ui(g_window, g_swapChain, g_backBuffer);
+  
   ImGui::Image(g_ModelTexture.m_textureFromImg, ImVec2(50, 50));
   ImGui::End();
   g_transform.ui();
   g_modelLoader.ui();
   bool Stage = true;
 
-  ImGui::Begin("Renderer", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-  ImTextureID texId = (ImTextureID)imguiSRV;
-  ImGui::Image(texId, ImVec2(g_window.m_width/2, g_window.m_height /2));
-  ImGui::End();
+  g_UI.Renderer(g_window, imguiSRV);
   
   ImGui::Begin("Model Properties", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
   ImGui::End();
   
   ImGui::Begin("Stage", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-
   ImGui::End();
   
   // Update variables that change once per frame
@@ -558,7 +509,7 @@ Render() {
   g_UI.render();
 
   // Restablecer la vista de renderizado original
-  g_deviceContext.m_deviceContext->OMSetRenderTargets(1, &g_renderTargetView.m_renderTargetView, g_depthStencilView.m_depthStencilView);
+  //g_deviceContext.m_deviceContext->OMSetRenderTargets(1, &g_renderTargetView.m_renderTargetView, g_depthStencilView.m_depthStencilView);
 
   // Presentar el back buffer
   g_swapChain.present();

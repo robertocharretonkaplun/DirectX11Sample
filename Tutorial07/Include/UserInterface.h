@@ -4,6 +4,11 @@
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
 #include <imgui_internal.h>
+
+class Window;
+class SwapChain;
+class Texture;
+
 class 
 UserInterface {
 public:
@@ -29,7 +34,10 @@ public:
       float columnWidth = 100.0f);
 
   void 
-  menuBar();
+  menuBar(Window window, SwapChain swapChain, Texture& backBuffer);
+
+  void
+  Renderer(Window window, ID3D11ShaderResourceView* renderTexture);
 
   void
   darkStyle();

@@ -1,4 +1,8 @@
 #include "UserInterface.h"
+#include "Screenshot.h"
+#include "Window.h"
+#include "SwapChain.h"
+#include "Texture.h"
 
 UserInterface::UserInterface() {
 }
@@ -130,7 +134,7 @@ UserInterface::vec3Control(std::string label, float* values, float resetValues, 
 }
 
 void 
-UserInterface::menuBar() {
+UserInterface::menuBar(Window window, SwapChain swapChain, Texture& backBuffer) {
   if (ImGui::BeginMainMenuBar())
   {
     if (ImGui::BeginMenu("File"))
@@ -146,9 +150,24 @@ UserInterface::menuBar() {
       ImGui::MenuItem("Paste", "Ctrl+V");
       ImGui::EndMenu();
     }
+    if (ImGui::BeginMenu("Capture screenshoot"))
+    {
+      //Screenshot sc;
+      //sc.captureScreenshot(window,swapChain, backBuffer );
+      ImGui::EndMenu();
+    }
     ImGui::EndMainMenuBar();
   }
 
+}
+
+void 
+UserInterface::Renderer(Window window, ID3D11ShaderResourceView* renderTexture) {
+  bool Stage = true;
+  ImGui::Begin("Renderer", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+  ImTextureID texId = (ImTextureID)renderTexture;
+  ImGui::Image(texId, ImVec2(window.m_width / 2, window.m_height / 2));
+  ImGui::End();
 }
 
 void 
