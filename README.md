@@ -4,7 +4,7 @@ DirectX 11 es una API de gr�ficos utilizada en la industria de los videojuegos
 
 ![Object model loaded from OBJ Loader](ObjectmodelloadedfromOBJLoader.png)
 
-Object model loaded from OBJ Loader
+# Object model loaded from OBJ Loader
 
 Adem�s, el repositorio **[https://github.com/robertocharretonkaplun/DirectX11Sample](https://github.com/robertocharretonkaplun/DirectX11Sample)** incluye dos bibliotecas externas que facilitan a�n m�s el proceso de desarrollo de aplicaciones gr�ficas. En primer lugar, la biblioteca Imgui es una poderosa herramienta para crear interfaces de usuario interactivas y personalizables. En segundo lugar, la biblioteca OBJ Loader permite a los desarrolladores cargar modelos 3D en sus aplicaciones con facilidad.
 

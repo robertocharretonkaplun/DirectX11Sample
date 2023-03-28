@@ -17,6 +17,7 @@
 #include "ModelLoader.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "ConstantBuffer.h"
 #include "Screenshot.h"
 //#define STB_IMAGE_WRITE_IMPLEMENTATION
 //#include "stb_image_write.h"
@@ -29,7 +30,7 @@
 //ID3D11Buffer*                       g_pVertexBuffer = nullptr;
 //ID3D11Buffer*                       g_pIndexBuffer = nullptr;
 ID3D11Buffer*                       g_Camera = nullptr;
-ID3D11Buffer*                       g_pCBChangesEveryFrame = nullptr;
+//ID3D11Buffer*                       g_pCBChangesEveryFrame = nullptr;
 //ID3D11SamplerState*                 g_pSamplerLinear = nullptr;
 //XMMATRIX                            g_World;
 XMMATRIX                            g_View;
@@ -48,6 +49,7 @@ Texture                             g_ModelTexture;
 Texture                             g_backBuffer;
 VertexBuffer                        g_vertexBuffer;
 IndexBuffer                         g_indexBuffer;
+ConstantBuffer                      g_modelBuffer;
 //InputLayout                         g_inputLayout;
 ShaderProgram                       g_shaderProgram;
 SamplerState                        g_samplerLineal;
@@ -259,15 +261,17 @@ InitDevice() {
   if (FAILED(hr))
     return hr;
 
-  D3D11_BUFFER_DESC ModelBufferDesc;
-  memset(&ModelBufferDesc, 0, sizeof(ModelBufferDesc));
-  ModelBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-  ModelBufferDesc.ByteWidth = sizeof(CBChangesEveryFrame);
-  ModelBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  ModelBufferDesc.CPUAccessFlags = 0;
-  hr = g_device.CreateBuffer(&ModelBufferDesc, nullptr, &g_pCBChangesEveryFrame);
-  if (FAILED(hr))
-    return hr;
+  //D3D11_BUFFER_DESC ModelBufferDesc;
+  //memset(&ModelBufferDesc, 0, sizeof(ModelBufferDesc));
+  //ModelBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+  //ModelBufferDesc.ByteWidth = sizeof(CBChangesEveryFrame);
+  //ModelBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  //ModelBufferDesc.CPUAccessFlags = 0;
+  //hr = g_device.CreateBuffer(&ModelBufferDesc, nullptr, &g_pCBChangesEveryFrame);
+  //if (FAILED(hr))
+  //  return hr;
+
+  g_modelBuffer.init(g_device, sizeof(CBChangesEveryFrame));
 
   // Load the Texture
   g_ModelTexture.init(g_device, "GunAlbedo.dds");
@@ -365,7 +369,8 @@ update(float deltaTime) {
   cb.vMeshColor = g_vMeshColor;
   // Update Data
   // Update Mesh buffers
-  g_deviceContext.UpdateSubresource(g_pCBChangesEveryFrame, 0, nullptr, &cb, 0, 0);
+  //g_deviceContext.UpdateSubresource(g_pCBChangesEveryFrame, 0, nullptr, &cb, 0, 0);
+  g_modelBuffer.update(g_deviceContext, 0, nullptr, &cb, 0, 0);
   // Update Camera Buffers
   g_deviceContext.UpdateSubresource(g_Camera, 0, nullptr, &g_cam, 0, 0);
 }
@@ -380,7 +385,8 @@ destroy() {
   g_ModelTexture.destroy();
   g_modelLoader.destroy();
   if (g_Camera) g_Camera->Release();
-  if (g_pCBChangesEveryFrame) g_pCBChangesEveryFrame->Release();
+  //if (g_pCBChangesEveryFrame) g_pCBChangesEveryFrame->Release();
+  g_modelBuffer.destroy();
   g_vertexBuffer.destroy();
   //if (g_pVertexBuffer) g_pVertexBuffer->Release();
   g_indexBuffer.destroy();
@@ -488,8 +494,10 @@ Render() {
   // Actor Constant buffer
   g_vertexBuffer.render(g_deviceContext, 0);
   g_indexBuffer.render(g_deviceContext);
-  g_deviceContext.VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
-  g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
+  g_modelBuffer.VSSetConstantBuffers(g_deviceContext, 1, 1);
+  g_modelBuffer.PSSetConstantBuffers(g_deviceContext, 1, 1);
+  //g_deviceContext.VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
+  //g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
   ID3D11ShaderResourceView* srvs[] = { imguiSRV };
   g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, srvs);
 

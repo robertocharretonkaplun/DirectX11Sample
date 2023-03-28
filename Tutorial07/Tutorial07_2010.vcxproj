@@ -417,6 +417,7 @@
     <ClCompile Include="Imgui\imgui-docking-znly-docking\imgui_draw.cpp" />
     <ClCompile Include="Imgui\imgui-docking-znly-docking\imgui_tables.cpp" />
     <ClCompile Include="Imgui\imgui-docking-znly-docking\imgui_widgets.cpp" />
+    <ClCompile Include="src\ConstantBuffer.cpp" />
     <ClCompile Include="src\CTime.cpp" />
     <ClCompile Include="src\DepthStencilView.cpp" />
     <ClCompile Include="src\Device.cpp" />
@@ -447,6 +448,7 @@
     <ClInclude Include="Imgui\imgui-docking-znly-docking\imstb_textedit.h" />
     <ClInclude Include="Imgui\imgui-docking-znly-docking\imstb_truetype.h" />
     <ClInclude Include="Include\Commons.h" />
+    <ClInclude Include="Include\ConstantBuffer.h" />
     <ClInclude Include="Include\DepthStencilView.h" />
     <ClInclude Include="Include\Device.h" />
     <ClInclude Include="Include\DeviceContext.h" />

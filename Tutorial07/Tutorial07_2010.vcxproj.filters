@@ -107,6 +107,9 @@
     <ClCompile Include="src\Screenshot.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\ConstantBuffer.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CLInclude Include="resource.h">
@@ -206,6 +209,9 @@
       <Filter>Include</Filter>
     </ClInclude>
     <ClInclude Include="Include\Screenshot.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\ConstantBuffer.h">
       <Filter>Include</Filter>
     </ClInclude>
   </ItemGroup>
