@@ -59,7 +59,7 @@ Screenshot::captureScreenshot(Window window, SwapChain swapChain, Texture & back
 
 void 
 Screenshot::ui(Window window, SwapChain swapChain, Texture& backBuffer) {
-  if (ImGui::Button("Mostrar mensaje"))
+  if (ImGui::Button("Capture Screenshot"))
   {
     ImGui::OpenPopup("popup_mensaje");
   }

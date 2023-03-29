@@ -19,6 +19,7 @@
 #include "IndexBuffer.h"
 #include "ConstantBuffer.h"
 #include "Screenshot.h"
+#include "Model.h"
 //#define STB_IMAGE_WRITE_IMPLEMENTATION
 //#include "stb_image_write.h"
 //--------------------------------------------------------------------------------------
@@ -47,10 +48,14 @@ Viewport                            g_viewport;
 Texture                             g_depthStencil;
 Texture                             g_ModelTexture;
 Texture                             g_backBuffer;
-VertexBuffer                        g_vertexBuffer;
-IndexBuffer                         g_indexBuffer;
-ConstantBuffer                      g_modelBuffer;
+//VertexBuffer                        g_vertexBuffer;
+//IndexBuffer                         g_indexBuffer;
+//ConstantBuffer                      g_modelBuffer;
 //InputLayout                         g_inputLayout;
+Model                               g_model;
+Model                               g_model2;
+
+std::vector<Model> g_models;
 ShaderProgram                       g_shaderProgram;
 SamplerState                        g_samplerLineal;
 Camera                              g_cam;
@@ -65,6 +70,7 @@ Screenshot                          g_captureScreenshot;
 //D3D11_VIEWPORT vp;
 unsigned int stride = sizeof(SimpleVertex);
 unsigned int offset = 0;
+int currentModel = 0;
 
 ID3D11Texture2D* imguiTexture;
 ID3D11RenderTargetView* imguiRTV;
@@ -222,9 +228,9 @@ InitDevice() {
   
   
 
-  g_vertexBuffer.init(g_device, LD);
-
-  g_indexBuffer.init(g_device, LD);
+  //g_vertexBuffer.init(g_device, LD);
+  //
+  //g_indexBuffer.init(g_device, LD);
   
 
   D3D11_TEXTURE2D_DESC textureDesc;
@@ -271,8 +277,9 @@ InitDevice() {
   //if (FAILED(hr))
   //  return hr;
 
-  g_modelBuffer.init(g_device, sizeof(CBChangesEveryFrame));
-
+  //g_modelBuffer.init(g_device, sizeof(CBChangesEveryFrame));
+  g_model.init(g_device, LD);
+  g_model2.init(g_device, LD);
   // Load the Texture
   g_ModelTexture.init(g_device, "GunAlbedo.dds");
 
@@ -297,8 +304,6 @@ InitDevice() {
   // Initialize Classes
   g_UI.init(g_window.m_hWnd, g_device.m_device, g_deviceContext.m_deviceContext);
   g_transform.init();
-
-
   return S_OK;
 }
 
@@ -329,6 +334,12 @@ Input(float deltaTime) {
     // move object right
     g_transform.m_position.z -= g_movementSpeed * deltaTime;
   }
+  if (GetAsyncKeyState('P') & 0x8000) {
+    currentModel = 0;
+  }
+  if (GetAsyncKeyState('O') & 0x8000) {
+    currentModel = 1;
+  }
 
 }
 
@@ -347,6 +358,7 @@ update(float deltaTime) {
   ImGui::Image(g_ModelTexture.m_textureFromImg, ImVec2(50, 50));
   ImGui::End();
   g_transform.ui();
+  //g_transform2.ui();
   g_modelLoader.ui();
   bool Stage = true;
 
@@ -364,13 +376,23 @@ update(float deltaTime) {
   // Rotate cube around the origin
   
   g_transform.update();
+  //g_transform2.update();
   CBChangesEveryFrame cb;
   cb.mWorld = XMMatrixTranspose(g_transform.m_matrix);
   cb.vMeshColor = g_vMeshColor;
+  //CBChangesEveryFrame cb2;
+  //cb2.mWorld = XMMatrixTranspose(g_transform2.m_matrix);
+  //cb2.vMeshColor = g_vMeshColor;
   // Update Data
   // Update Mesh buffers
   //g_deviceContext.UpdateSubresource(g_pCBChangesEveryFrame, 0, nullptr, &cb, 0, 0);
-  g_modelBuffer.update(g_deviceContext, 0, nullptr, &cb, 0, 0);
+  //g_modelBuffer.update(g_deviceContext, 0, nullptr, &cb, 0, 0);
+  if (currentModel == 0) {
+    g_model.update(g_deviceContext, 0, nullptr, &cb, 0, 0);
+  }
+  else {
+    g_model2.update(g_deviceContext, 0, nullptr, &cb, 0, 0);
+  }
   // Update Camera Buffers
   g_deviceContext.UpdateSubresource(g_Camera, 0, nullptr, &g_cam, 0, 0);
 }
@@ -386,10 +408,12 @@ destroy() {
   g_modelLoader.destroy();
   if (g_Camera) g_Camera->Release();
   //if (g_pCBChangesEveryFrame) g_pCBChangesEveryFrame->Release();
-  g_modelBuffer.destroy();
-  g_vertexBuffer.destroy();
-  //if (g_pVertexBuffer) g_pVertexBuffer->Release();
-  g_indexBuffer.destroy();
+  //g_modelBuffer.destroy();
+  //g_vertexBuffer.destroy();
+  ////if (g_pVertexBuffer) g_pVertexBuffer->Release();
+  //g_indexBuffer.destroy();
+  g_model.destroy();
+  g_model2.destroy();
   //if (g_pIndexBuffer) g_pIndexBuffer->Release();
 
   g_shaderProgram.destroy();
@@ -492,12 +516,15 @@ Render() {
   g_deviceContext.VSSetConstantBuffers(0, 1, &g_Camera);
 
   // Actor Constant buffer
-  g_vertexBuffer.render(g_deviceContext, 0);
-  g_indexBuffer.render(g_deviceContext);
-  g_modelBuffer.VSSetConstantBuffers(g_deviceContext, 1, 1);
-  g_modelBuffer.PSSetConstantBuffers(g_deviceContext, 1, 1);
+  //g_vertexBuffer.render(g_deviceContext, 0);
+  //g_indexBuffer.render(g_deviceContext);
+  //g_modelBuffer.VSSetConstantBuffers(g_deviceContext, 1, 1);
+  //g_modelBuffer.PSSetConstantBuffers(g_deviceContext, 1, 1);
+  
   //g_deviceContext.VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
   //g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
+  g_model.render(g_deviceContext, 0);
+  g_model2.render(g_deviceContext, 1);
   ID3D11ShaderResourceView* srvs[] = { imguiSRV };
   g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, srvs);
 
@@ -506,8 +533,8 @@ Render() {
   g_samplerLineal.render(g_deviceContext);
 
   // Dibujar
-  g_deviceContext.DrawIndexed(LD.numIndex, 0, 0);
-
+  //g_deviceContext.DrawIndexed(LD.numIndex, 0, 0);
+  //g_deviceContext.DrawIndexed(g_model.m_loadData.numIndex, 0, 0);
   // Copiar el back buffer a la textura IMGUI
   g_swapChain.m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&g_backBuffer.m_texture);
   g_deviceContext.m_deviceContext->CopyResource(imguiTexture, g_backBuffer.m_texture);

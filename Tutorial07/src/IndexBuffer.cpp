@@ -20,7 +20,6 @@ IndexBuffer::init(Device device, LoadData loadData) {
   D3D11_BUFFER_DESC indexBufferDesc;
   memset(&indexBufferDesc, 0, sizeof(indexBufferDesc));
   indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-  //bd.ByteWidth = sizeof(WORD) * 36;
   indexBufferDesc.ByteWidth = sizeof(unsigned int) * loadData.numIndex;
   indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
   indexBufferDesc.CPUAccessFlags = 0;
