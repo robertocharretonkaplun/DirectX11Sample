@@ -79,6 +79,9 @@ Texture::init(Device device,
 void 
 Texture::render(DeviceContext& deviceContext, unsigned int StartSlot) {
 	if (m_textureFromImg != nullptr) {
+		//deviceContext.PSSetShaderResources(StartSlot, 1, &m_textureFromImg);
+		ID3D11ShaderResourceView* nullSRV[] = { nullptr };
+		deviceContext.PSSetShaderResources(StartSlot, 1, nullSRV);
 		deviceContext.PSSetShaderResources(StartSlot, 1, &m_textureFromImg);
 	}
 }

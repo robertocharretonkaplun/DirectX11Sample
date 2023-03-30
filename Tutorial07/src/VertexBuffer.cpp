@@ -40,8 +40,8 @@ VertexBuffer::update() {
 }
 
 void 
-VertexBuffer::render(DeviceContext & deviceContext, unsigned int StartSlot) {
-  deviceContext.IASetVertexBuffers(StartSlot, 1, &m_vertexBuffer, &m_stride, &m_offset);
+VertexBuffer::render(DeviceContext & deviceContext, unsigned int StartSlot, unsigned int NumBuffers) {
+  deviceContext.IASetVertexBuffers(StartSlot, NumBuffers, &m_vertexBuffer, &m_stride, &m_offset);
 }
 
 void 

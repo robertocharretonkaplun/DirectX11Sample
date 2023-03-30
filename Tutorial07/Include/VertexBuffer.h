@@ -17,7 +17,7 @@ public:
   update();
   
   void 
-  render(DeviceContext& deviceContext, unsigned int StartSlot);
+  render(DeviceContext& deviceContext, unsigned int StartSlot, unsigned int NumBuffers);
   
   void 
   destroy();

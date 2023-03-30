@@ -17,18 +17,24 @@ public:
   init(Device device, LoadData loadData);
 
   void 
-  update(DeviceContext& deviceContext,
-    unsigned int DstSubresource,
-    const D3D11_BOX* pDstBox,
-    const void* pSrcData,
-    unsigned int SrcRowPitch,
-    unsigned int SrcDepthPitch);
+  update(DeviceContext& deviceContext, std::string wName);
   
   void 
-  render(DeviceContext& deviceContext, unsigned int StartSlot);
+  render(DeviceContext& deviceContext, unsigned int StartSlot,unsigned int NumBuffers);
   
   void 
   destroy();
+
+  void 
+  setTransform(Transform t);
+
+  Transform
+  getTransform();
+
+  bool 
+  isActive() const { return m_active; }
+  void 
+  setActive(bool active) { m_active = active; }
 
 public:
   VertexBuffer                        g_vertexBuffer;
@@ -36,4 +42,5 @@ public:
   ConstantBuffer                      g_modelBuffer;
   LoadData m_loadData;
   Transform m_transform;
+  bool m_active = false;
 };

@@ -22,16 +22,16 @@ public:
   destroy();
 
   void 
-  ui();
+  ui(std::string wName);
 public:
 	Vector3f m_position;
 	Vector3f m_rotation;
 	Vector3f m_scale;
   XMMATRIX m_matrix;
   UserInterface UI;
+  float* m_pos;
 private:
   // UI data
-  float* m_pos;
   float* m_rot;
   float* m_sca;
 };

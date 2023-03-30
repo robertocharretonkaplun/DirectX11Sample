@@ -41,8 +41,8 @@ Transform::destroy() {
 }
 
 void 
-Transform::ui() {
-  ImGui::Begin("Transform");
+Transform::ui(std::string wName) {
+  ImGui::Begin(wName.c_str());
   // Get the position
   m_pos[0] = m_position.x;
   m_pos[1] = m_position.y;

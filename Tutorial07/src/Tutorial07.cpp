@@ -47,13 +47,15 @@ DepthStencilView                    g_depthStencilView;
 Viewport                            g_viewport;
 Texture                             g_depthStencil;
 Texture                             g_ModelTexture;
+Texture                             g_ModelTexture2;
+std::vector<Texture> g_textures;
 Texture                             g_backBuffer;
 //VertexBuffer                        g_vertexBuffer;
 //IndexBuffer                         g_indexBuffer;
 //ConstantBuffer                      g_modelBuffer;
 //InputLayout                         g_inputLayout;
-Model                               g_model;
-Model                               g_model2;
+//Model                               g_model;
+//Model                               g_model2;
 
 std::vector<Model> g_models;
 ShaderProgram                       g_shaderProgram;
@@ -62,15 +64,19 @@ Camera                              g_cam;
 CTime                               g_Time;
 UserInterface                       g_UI;
 Transform                           g_transform;
+Transform                           g_transform2;
 float                               g_movementSpeed = 5.0f;
 float                               g_speed;
 LoadData LD;
+LoadData LD2;
 ModelLoader                         g_modelLoader;
+ModelLoader                         g_modelLoader2;
 Screenshot                          g_captureScreenshot;
 //D3D11_VIEWPORT vp;
 unsigned int stride = sizeof(SimpleVertex);
 unsigned int offset = 0;
 int currentModel = 0;
+int activeModelIndex = 0;
 
 ID3D11Texture2D* imguiTexture;
 ID3D11RenderTargetView* imguiRTV;
@@ -221,9 +227,13 @@ InitDevice() {
 
   
   g_shaderProgram.init(g_device, "Tutorial07.fx", Layout);
-  
+  // Load the Texture
+  g_ModelTexture.init(g_device, "GunAlbedo.dds");
+  g_ModelTexture2.init(g_device, "DefaultTexture.dds");
+  g_textures.push_back(g_ModelTexture);
+  g_textures.push_back(g_ModelTexture2);
+  g_samplerLineal.init(g_device);
   // Load Model
-  LD = g_modelLoader.Load("Pistol.obj");
   // Vertex e Index Buffer se van a trasladar a la clase Actor
   
   
@@ -278,12 +288,18 @@ InitDevice() {
   //  return hr;
 
   //g_modelBuffer.init(g_device, sizeof(CBChangesEveryFrame));
-  g_model.init(g_device, LD);
-  g_model2.init(g_device, LD);
-  // Load the Texture
-  g_ModelTexture.init(g_device, "GunAlbedo.dds");
+  //g_model.init(g_device, LD);
+  //g_model2.init(g_device, LD);
+  LD = g_modelLoader.Load("Pistol.obj");
+  LD2 = g_modelLoader2.Load("Pistol.obj");
+  Model Model1;
+  Model1.init(g_device, LD);
+  g_models.push_back(Model1);
+  Model Model2;
+  Model2.init(g_device, LD2);
+  g_models.push_back(Model2);
 
-  g_samplerLineal.init(g_device);
+  
 
   // Initialize the view matrix
   XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, -30.0f);
@@ -304,6 +320,9 @@ InitDevice() {
   // Initialize Classes
   g_UI.init(g_window.m_hWnd, g_device.m_device, g_deviceContext.m_deviceContext);
   g_transform.init();
+  g_transform2.init();
+  g_transform2.m_position.x = 1;
+  g_models[currentModel].setActive(true);
   return S_OK;
 }
 
@@ -343,22 +362,21 @@ Input(float deltaTime) {
 
 }
 
-
-// Esta funcion esta encargada de actualizar la LOGICA del programa
-void 
-update(float deltaTime) {
+void UI() {
   g_UI.update();
-  Input(deltaTime);
+  
   bool show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
   ImGui::Begin("Textures");
   g_UI.menuBar(g_window, g_swapChain, g_backBuffer);
   g_captureScreenshot.ui(g_window, g_swapChain, g_backBuffer);
-  
-  ImGui::Image(g_ModelTexture.m_textureFromImg, ImVec2(50, 50));
+  if (ImGui::Button("New Model")) {
+    LD2 = g_modelLoader2.Load("Pistol.obj");
+    Model Model1;
+    Model1.init(g_device, LD2);
+    g_models.push_back(Model1);
+  }
   ImGui::End();
-  g_transform.ui();
-  //g_transform2.ui();
   g_modelLoader.ui();
   bool Stage = true;
 
@@ -369,30 +387,26 @@ update(float deltaTime) {
   ImGui::End();
   
   ImGui::Begin("Stage", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+  
   ImGui::End();
-  
-  // Update variables that change once per frame
-  //speed += .0002f;
-  // Rotate cube around the origin
-  
+
+}
+// Esta funcion esta encargada de actualizar la LOGICA del programa
+void 
+update(float deltaTime) {
+  Input(deltaTime);
+
+  UI();
+
   g_transform.update();
-  //g_transform2.update();
-  CBChangesEveryFrame cb;
-  cb.mWorld = XMMatrixTranspose(g_transform.m_matrix);
-  cb.vMeshColor = g_vMeshColor;
-  //CBChangesEveryFrame cb2;
-  //cb2.mWorld = XMMatrixTranspose(g_transform2.m_matrix);
-  //cb2.vMeshColor = g_vMeshColor;
-  // Update Data
-  // Update Mesh buffers
-  //g_deviceContext.UpdateSubresource(g_pCBChangesEveryFrame, 0, nullptr, &cb, 0, 0);
-  //g_modelBuffer.update(g_deviceContext, 0, nullptr, &cb, 0, 0);
-  if (currentModel == 0) {
-    g_model.update(g_deviceContext, 0, nullptr, &cb, 0, 0);
+
+  for (int i = 0; i < g_models.size(); i++)
+  {
+    std::string n = "Transform" + i;
+    g_models[i].update(g_deviceContext, n.c_str());
   }
-  else {
-    g_model2.update(g_deviceContext, 0, nullptr, &cb, 0, 0);
-  }
+  
+  
   // Update Camera Buffers
   g_deviceContext.UpdateSubresource(g_Camera, 0, nullptr, &g_cam, 0, 0);
 }
@@ -404,17 +418,19 @@ void
 destroy() {
   g_deviceContext.destroy();
   g_samplerLineal.destroy();
-  g_ModelTexture.destroy();
+  //g_ModelTexture.destroy();
+  for (int i = 0; i < g_textures.size(); i++)
+  {
+    g_textures[i].destroy();
+  }
+
+  g_ModelTexture2.destroy();
   g_modelLoader.destroy();
   if (g_Camera) g_Camera->Release();
-  //if (g_pCBChangesEveryFrame) g_pCBChangesEveryFrame->Release();
-  //g_modelBuffer.destroy();
-  //g_vertexBuffer.destroy();
-  ////if (g_pVertexBuffer) g_pVertexBuffer->Release();
-  //g_indexBuffer.destroy();
-  g_model.destroy();
-  g_model2.destroy();
-  //if (g_pIndexBuffer) g_pIndexBuffer->Release();
+  for (int i = 0; i < g_models.size(); i++)
+  {
+    g_models[i].destroy();
+  }
 
   g_shaderProgram.destroy();
   g_depthStencil.destroy();
@@ -507,7 +523,6 @@ Render() {
 
   // Establecer el InputLayout
   g_deviceContext.IASetInputLayout(g_shaderProgram.m_inputLayout.m_inputLayout);
-  g_deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   // Establecer los shaders
   g_shaderProgram.render(g_deviceContext);
@@ -515,26 +530,19 @@ Render() {
   // Establecer los constant buffers
   g_deviceContext.VSSetConstantBuffers(0, 1, &g_Camera);
 
-  // Actor Constant buffer
-  //g_vertexBuffer.render(g_deviceContext, 0);
-  //g_indexBuffer.render(g_deviceContext);
-  //g_modelBuffer.VSSetConstantBuffers(g_deviceContext, 1, 1);
-  //g_modelBuffer.PSSetConstantBuffers(g_deviceContext, 1, 1);
+  unsigned int startSlot = 0;
+  for (int i = 0; i < g_models.size(); i++) {
+    g_samplerLineal.render(g_deviceContext, 0, 1);
+    g_models[i].render(g_deviceContext, 0, 1);
+    startSlot++;
+  }
   
-  //g_deviceContext.VSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
-  //g_deviceContext.PSSetConstantBuffers(1, 1, &g_pCBChangesEveryFrame);
-  g_model.render(g_deviceContext, 0);
-  g_model2.render(g_deviceContext, 1);
   ID3D11ShaderResourceView* srvs[] = { imguiSRV };
   g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, srvs);
 
-  // Establecer las texturas y samplers
-  g_ModelTexture.render(g_deviceContext, 0);
-  g_samplerLineal.render(g_deviceContext);
+  g_textures[0].render(g_deviceContext, 0);
 
   // Dibujar
-  //g_deviceContext.DrawIndexed(LD.numIndex, 0, 0);
-  //g_deviceContext.DrawIndexed(g_model.m_loadData.numIndex, 0, 0);
   // Copiar el back buffer a la textura IMGUI
   g_swapChain.m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&g_backBuffer.m_texture);
   g_deviceContext.m_deviceContext->CopyResource(imguiTexture, g_backBuffer.m_texture);
@@ -542,9 +550,6 @@ Render() {
 
   // Renderizar la UI
   g_UI.render();
-
-  // Restablecer la vista de renderizado original
-  //g_deviceContext.m_deviceContext->OMSetRenderTargets(1, &g_renderTargetView.m_renderTargetView, g_depthStencilView.m_depthStencilView);
 
   // Presentar el back buffer
   g_swapChain.present();

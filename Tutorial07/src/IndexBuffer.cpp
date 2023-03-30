@@ -25,6 +25,7 @@ IndexBuffer::init(Device device, LoadData loadData) {
   indexBufferDesc.CPUAccessFlags = 0;
 
   D3D11_SUBRESOURCE_DATA InitData;
+  memset(&InitData, 0, sizeof(InitData));
   InitData.pSysMem = loadData.index.data();
   hr = device.CreateBuffer(&indexBufferDesc, &InitData, &m_indexBuffer);
 

@@ -33,8 +33,9 @@ SamplerState::update() {
 }
 
 void 
-SamplerState::render(DeviceContext & deviceContext) {
-  deviceContext.PSSetSamplers(0, 1, &m_sampler);
+SamplerState::render(DeviceContext & deviceContext, unsigned int StartSlot,
+  unsigned int NumSamplers) {
+  deviceContext.PSSetSamplers(StartSlot, NumSamplers, &m_sampler);
 }
 
 void 
