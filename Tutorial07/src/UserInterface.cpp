@@ -41,6 +41,7 @@ UserInterface::init(void* window, ID3D11Device* device, ID3D11DeviceContext* dev
   }
   //darkStyle();
   greyStyle();
+  //visualStudioStyle();
   // Setup Platform/Renderer backends
   ImGui_ImplWin32_Init(window);
   ImGui_ImplDX11_Init(device, deviceContext);
@@ -318,4 +319,80 @@ UserInterface::greyStyle() {
     style.WindowRounding = 0.0f;
     style.Colors[ImGuiCol_WindowBg].w = 1.0f;
   }
+}
+
+void 
+UserInterface::visualStudioStyle() {
+  ImGuiStyle& style = ImGui::GetStyle();
+
+  // Colors
+  ImVec4* colors = style.Colors;
+
+  const ImVec4 discord_purple = ImVec4(0.447f, 0.227f, 0.635f, 1.000f);
+  const ImVec4 discord_darker_purple = ImVec4(0.337f, 0.157f, 0.486f, 1.000f);
+  const ImVec4 discord_light_gray = ImVec4(0.741f, 0.765f, 0.780f, 1.000f);
+  const ImVec4 discord_darker_gray = ImVec4(0.169f, 0.188f, 0.204f, 1.000f);
+  const ImVec4 discord_blue = ImVec4(0.192f, 0.545f, 0.906f, 1.000f);
+  const ImVec4 discord_green = ImVec4(0.129f, 0.694f, 0.403f, 1.000f);
+  const ImVec4 discord_yellow = ImVec4(1.000f, 0.741f, 0.000f, 1.000f);
+  const ImVec4 discord_red = ImVec4(0.757f, 0.169f, 0.169f, 1.000f);
+  ImVec4 discord_light_blue = ImVec4(0.29f, 0.56f, 0.89f, 1.00f);
+  ImVec4 discord_dark_gray = ImVec4(0.16f, 0.18f, 0.21f, 1.00f);
+  ImVec4 discord_darker_green = ImVec4(0.09f, 0.12f, 0.14f, 1.00f);
+  ImVec4 discord_darker_blue = ImVec4(0.05f, 0.11f, 0.19f, 1.00f);
+  ImVec4 discord_lighter_gray = ImVec4(0.36f, 0.39f, 0.44f, 1.00f);
+
+  // Main
+  colors[ImGuiCol_Text] = discord_light_gray;
+  colors[ImGuiCol_TextDisabled] = discord_darker_gray;
+  colors[ImGuiCol_WindowBg] = discord_purple;
+  colors[ImGuiCol_ChildBg] = discord_purple;
+  colors[ImGuiCol_PopupBg] = discord_purple;
+  colors[ImGuiCol_Border] = discord_darker_gray;
+  colors[ImGuiCol_BorderShadow] = ImVec4(0.000f, 0.000f, 0.000f, 0.000f);
+  colors[ImGuiCol_FrameBg] = discord_darker_purple;
+  colors[ImGuiCol_FrameBgHovered] = discord_blue;
+  colors[ImGuiCol_FrameBgActive] = discord_blue;
+  colors[ImGuiCol_TitleBg] = discord_darker_purple;
+  colors[ImGuiCol_TitleBgActive] = discord_blue;
+  colors[ImGuiCol_TitleBgCollapsed] = discord_darker_gray;
+  colors[ImGuiCol_MenuBarBg] = discord_darker_purple;
+  colors[ImGuiCol_ScrollbarBg] = discord_darker_purple;
+  colors[ImGuiCol_ScrollbarGrab] = discord_light_gray;
+  colors[ImGuiCol_ScrollbarGrabHovered] = discord_darker_gray;
+  colors[ImGuiCol_ScrollbarGrabActive] = discord_blue;
+  colors[ImGuiCol_CheckMark] = discord_green;
+  colors[ImGuiCol_SliderGrab] = discord_green;
+  colors[ImGuiCol_SliderGrabActive] = discord_darker_green;
+  colors[ImGuiCol_Button] = discord_green;
+  colors[ImGuiCol_ButtonHovered] = discord_blue;
+  colors[ImGuiCol_ButtonActive] = discord_darker_blue;
+  colors[ImGuiCol_Header] = discord_green;
+  colors[ImGuiCol_HeaderHovered] = discord_blue;
+  colors[ImGuiCol_HeaderActive] = discord_darker_blue;
+  colors[ImGuiCol_Separator] = discord_darker_gray;
+  colors[ImGuiCol_SeparatorHovered] = discord_blue;
+  colors[ImGuiCol_SeparatorActive] = discord_darker_blue;
+  colors[ImGuiCol_ResizeGrip] = discord_light_gray;
+  colors[ImGuiCol_ResizeGripHovered] = discord_lighter_gray;
+  colors[ImGuiCol_ResizeGripActive] = discord_lighter_gray;
+  colors[ImGuiCol_Tab] = discord_dark_gray;
+  colors[ImGuiCol_TabHovered] = discord_darker_blue;
+  colors[ImGuiCol_TabActive] = discord_darker_blue;
+  colors[ImGuiCol_TabUnfocused] = discord_darker_gray;
+  colors[ImGuiCol_TabUnfocusedActive] = discord_lighter_gray;
+  colors[ImGuiCol_DockingPreview] = discord_lighter_gray;
+  colors[ImGuiCol_DockingEmptyBg] = discord_dark_gray;
+  colors[ImGuiCol_PlotLines] = discord_lighter_gray;
+  colors[ImGuiCol_PlotLinesHovered] = discord_light_blue;
+  colors[ImGuiCol_PlotHistogram] = discord_lighter_gray;
+  colors[ImGuiCol_PlotHistogramHovered] = discord_light_blue;
+  colors[ImGuiCol_TextSelectedBg] = discord_light_blue;
+  colors[ImGuiCol_DragDropTarget] = discord_light_blue;
+  colors[ImGuiCol_NavHighlight] = discord_light_blue;
+  colors[ImGuiCol_NavWindowingHighlight] = discord_light_blue;
+  colors[ImGuiCol_NavWindowingDimBg] = discord_darker_gray;
+  colors[ImGuiCol_ModalWindowDimBg] = discord_darker_gray;
+
+
 }

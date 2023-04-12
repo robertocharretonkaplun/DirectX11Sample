@@ -69,6 +69,38 @@ ModelLoader::Load(std::string objFileName) {
   return LD;
 }
 
+LoadData 
+ModelLoader::LoadV2(std::string objFileName) {
+  LoadData ld;
+  objl::Loader loader;
+
+  if (loader.LoadFile(objFileName)) {
+    ld.name = objFileName;
+
+    // Reserve capacity for the vectors
+    ld.vertex.reserve(loader.LoadedVertices.size());
+    ld.index.reserve(loader.LoadedIndices.size());
+
+    // Load the vertices
+    for (auto& vertex : loader.LoadedVertices) {
+      ld.vertex.emplace_back(SimpleVertex {
+        { vertex.Position.X, vertex.Position.Y, vertex.Position.Z },
+        { vertex.TextureCoordinate.X, 1.0f - vertex.TextureCoordinate.Y }
+      });
+    }
+
+    // Load the indices
+    for (auto index : loader.LoadedIndices) {
+      ld.index.push_back(index);
+    }
+
+    ld.numVertex = ld.vertex.size();
+    ld.numIndex =  ld.index.size();
+  }
+
+  return ld;
+}
+
 void 
 ModelLoader::ui() {
   ImGui::Begin("Activity Progress");

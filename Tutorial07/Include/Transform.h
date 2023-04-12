@@ -3,8 +3,8 @@
 #include "Commons.h"
 #include "UserInterface.h"
 
-class Transform
-{
+class 
+Transform {
 public:
 	Transform();
 	~Transform();

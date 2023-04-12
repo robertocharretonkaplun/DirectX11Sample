@@ -44,6 +44,9 @@ public:
   
   void
   greyStyle();
+
+  void
+  visualStudioStyle();
 private:
 
 };

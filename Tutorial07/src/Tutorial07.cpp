@@ -290,8 +290,8 @@ InitDevice() {
   //g_modelBuffer.init(g_device, sizeof(CBChangesEveryFrame));
   //g_model.init(g_device, LD);
   //g_model2.init(g_device, LD);
-  LD = g_modelLoader.Load("Pistol.obj");
-  LD2 = g_modelLoader2.Load("Pistol.obj");
+  LD = g_modelLoader.LoadV2("Pistol.obj");
+  LD2 = g_modelLoader2.LoadV2("Pistol.obj");
   Model Model1;
   Model1.init(g_device, LD);
   g_models.push_back(Model1);
@@ -389,7 +389,26 @@ void UI() {
   ImGui::Begin("Stage", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
   
   ImGui::End();
+  ImGui::Begin("Facebook Style Window");
 
+  // Imagen de perfil
+  //ImGui::Image((void*)(intptr_t)my_image_texture_id, ImVec2(100, 100));
+
+  // Nombre de usuario y estado
+  ImGui::Text("Nombre de Usuario");
+  ImGui::Text("Estado");
+
+  // Cuadro de texto para publicación
+  static char post_text[1024] = "";
+  ImGui::InputTextMultiline("##Publicacion", post_text, IM_ARRAYSIZE(post_text), ImVec2(-1, 100));
+
+  // Botón de publicación
+  if (ImGui::Button("Publicar", ImVec2(-1, 30)))
+  {
+    // Agregar código aquí para publicar el mensaje
+  }
+
+  ImGui::End();
 }
 // Esta funcion esta encargada de actualizar la LOGICA del programa
 void 
@@ -424,7 +443,7 @@ destroy() {
     g_textures[i].destroy();
   }
 
-  g_ModelTexture2.destroy();
+  //g_ModelTexture2.destroy();
   g_modelLoader.destroy();
   if (g_Camera) g_Camera->Release();
   for (int i = 0; i < g_models.size(); i++)
