@@ -371,7 +371,7 @@ void UI() {
   g_UI.menuBar(g_window, g_swapChain, g_backBuffer);
   g_captureScreenshot.ui(g_window, g_swapChain, g_backBuffer);
   if (ImGui::Button("New Model")) {
-    LD2 = g_modelLoader2.Load("Pistol.obj");
+    LD2 = g_modelLoader2.LoadV2("Pistol.obj");
     Model Model1;
     Model1.init(g_device, LD2);
     g_models.push_back(Model1);
@@ -382,33 +382,34 @@ void UI() {
 
   g_UI.Renderer(g_window, imguiSRV);
   
-  ImGui::Begin("Model Properties", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
-  ImGui::End();
   
   ImGui::Begin("Stage", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
   
   ImGui::End();
-  ImGui::Begin("Facebook Style Window");
+
+  ImGui::Begin("Properties", &Stage);
+  ImGui::End();
+  //ImGui::Begin("Facebook Style Window");
 
   // Imagen de perfil
   //ImGui::Image((void*)(intptr_t)my_image_texture_id, ImVec2(100, 100));
 
   // Nombre de usuario y estado
-  ImGui::Text("Nombre de Usuario");
-  ImGui::Text("Estado");
+ // ImGui::Text("Nombre de Usuario");
+  //ImGui::Text("Estado");
 
   // Cuadro de texto para publicación
-  static char post_text[1024] = "";
-  ImGui::InputTextMultiline("##Publicacion", post_text, IM_ARRAYSIZE(post_text), ImVec2(-1, 100));
+  //static char post_text[1024] = "";
+  //ImGui::InputTextMultiline("##Publicacion", post_text, IM_ARRAYSIZE(post_text), ImVec2(-1, 100));
 
   // Botón de publicación
-  if (ImGui::Button("Publicar", ImVec2(-1, 30)))
-  {
+ // if (ImGui::Button("Publicar", ImVec2(-1, 30)))
+  //{
     // Agregar código aquí para publicar el mensaje
-  }
+  //}
 
-  ImGui::End();
+  //ImGui::End();
 }
 // Esta funcion esta encargada de actualizar la LOGICA del programa
 void 
@@ -423,6 +424,7 @@ update(float deltaTime) {
   {
     std::string n = "Transform" + i;
     g_models[i].update(g_deviceContext, n.c_str());
+    g_models[i].ui(n.c_str());
   }
   
   
@@ -539,9 +541,6 @@ Render() {
 
   // Configurar el viewport
   g_viewport.render(g_deviceContext);
-
-  // Establecer el InputLayout
-  g_deviceContext.IASetInputLayout(g_shaderProgram.m_inputLayout.m_inputLayout);
 
   // Establecer los shaders
   g_shaderProgram.render(g_deviceContext);

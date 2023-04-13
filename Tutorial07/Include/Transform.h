@@ -23,6 +23,9 @@ public:
 
   void 
   ui(std::string wName);
+  
+  void 
+  ui_noWindow(std::string wName);
 public:
 	Vector3f m_position;
 	Vector3f m_rotation;

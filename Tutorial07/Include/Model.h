@@ -4,6 +4,7 @@
 #include "IndexBuffer.h"
 #include "ConstantBuffer.h"
 #include "Transform.h"
+#include "UserInterface.h"
 class Device;
 class DeviceContext;
 
@@ -24,6 +25,9 @@ public:
   
   void 
   destroy();
+  
+  void
+  ui(std::string wName);
 
   void 
   setTransform(Transform t);
