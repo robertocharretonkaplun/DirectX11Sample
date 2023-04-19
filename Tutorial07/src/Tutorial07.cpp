@@ -30,7 +30,7 @@
 //ID3D11PixelShader*                  g_pPixelShader = nullptr;
 //ID3D11Buffer*                       g_pVertexBuffer = nullptr;
 //ID3D11Buffer*                       g_pIndexBuffer = nullptr;
-ID3D11Buffer*                       g_Camera = nullptr;
+ID3D11Buffer* g_Camera = nullptr;
 //ID3D11Buffer*                       g_pCBChangesEveryFrame = nullptr;
 //ID3D11SamplerState*                 g_pSamplerLinear = nullptr;
 //XMMATRIX                            g_World;
@@ -97,17 +97,17 @@ void destroy();
 // Entry point to the program. Initializes everything and goes into a message processing 
 // loop. Idle time is used to render the scene.
 //--------------------------------------------------------------------------------------
-int WINAPI 
-wWinMain(HINSTANCE hInstance, 
-         HINSTANCE hPrevInstance, 
-         LPWSTR lpCmdLine,                                                                         
-         int nCmdShow) {
+int WINAPI
+wWinMain(HINSTANCE hInstance,
+  HINSTANCE hPrevInstance,
+  LPWSTR lpCmdLine,
+  int nCmdShow) {
   UNREFERENCED_PARAMETER(hPrevInstance);
   UNREFERENCED_PARAMETER(lpCmdLine);
 
   //if (FAILED(InitWindow(hInstance, nCmdShow)))
   //  return 0;
-  
+
   if (FAILED(g_window.init(hInstance, nCmdShow, WndProc)))
     return 0;
 
@@ -117,12 +117,12 @@ wWinMain(HINSTANCE hInstance,
   }
   // Initialize the time
   g_Time.init();
-  
+
 
   // Main message loop
   MSG msg = { 0 };
   while (WM_QUIT != msg.message) {
-    
+
     if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
       TranslateMessage(&msg);
       DispatchMessage(&msg);
@@ -132,7 +132,7 @@ wWinMain(HINSTANCE hInstance,
       g_Time.update();
       update(g_Time.m_deltaTime);
       Render();
-      
+
     }
   }
   destroy();
@@ -143,11 +143,11 @@ wWinMain(HINSTANCE hInstance,
 //--------------------------------------------------------------------------------------
 // Helper for compiling shaders with D3DX11
 //--------------------------------------------------------------------------------------
-HRESULT 
-CompileShaderFromFile(char* szFileName, 
-                      LPCSTR szEntryPoint, 
-                      LPCSTR szShaderModel, 
-                      ID3DBlob** ppBlobOut) {
+HRESULT
+CompileShaderFromFile(char* szFileName,
+  LPCSTR szEntryPoint,
+  LPCSTR szShaderModel,
+  ID3DBlob** ppBlobOut) {
   HRESULT hr = S_OK;
 
   DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -177,28 +177,28 @@ CompileShaderFromFile(char* szFileName,
 //--------------------------------------------------------------------------------------
 // Create Direct3D device and swap chain
 //--------------------------------------------------------------------------------------
-HRESULT 
+HRESULT
 InitDevice() {
   HRESULT hr = S_OK;
   g_swapChain.init(g_device, g_deviceContext, g_backBuffer, g_window);
-  
+
   g_renderTargetView.init(g_device, g_backBuffer, DXGI_FORMAT_R8G8B8A8_UNORM);
 
 
-  
-  g_depthStencil.init(g_device, 
-                      g_window.m_width, 
-                      g_window.m_height,
-                      DXGI_FORMAT_D24_UNORM_S8_UINT, 
-                      D3D11_BIND_DEPTH_STENCIL);
 
-  g_depthStencilView.init(g_device, 
-                          g_depthStencil.m_texture, 
-                          DXGI_FORMAT_D24_UNORM_S8_UINT);
-  
+  g_depthStencil.init(g_device,
+    g_window.m_width,
+    g_window.m_height,
+    DXGI_FORMAT_D24_UNORM_S8_UINT,
+    D3D11_BIND_DEPTH_STENCIL);
+
+  g_depthStencilView.init(g_device,
+    g_depthStencil.m_texture,
+    DXGI_FORMAT_D24_UNORM_S8_UINT);
+
   g_viewport.init(g_window);
 
-  
+
 
   // Dibuja en el render target
 
@@ -225,7 +225,7 @@ InitDevice() {
   texcoord.InstanceDataStepRate = 0;
   Layout.push_back(texcoord);
 
-  
+
   g_shaderProgram.init(g_device, "Tutorial07.fx", Layout);
   // Load the Texture
   g_ModelTexture.init(g_device, "GunAlbedo.dds");
@@ -235,13 +235,13 @@ InitDevice() {
   g_samplerLineal.init(g_device);
   // Load Model
   // Vertex e Index Buffer se van a trasladar a la clase Actor
-  
-  
+
+
 
   //g_vertexBuffer.init(g_device, LD);
   //
   //g_indexBuffer.init(g_device, LD);
-  
+
 
   D3D11_TEXTURE2D_DESC textureDesc;
   ZeroMemory(&textureDesc, sizeof(textureDesc));
@@ -257,7 +257,7 @@ InitDevice() {
 
   // Crear una vista de render target para la textura de IMGUI
   g_device.m_device->CreateRenderTargetView(imguiTexture, NULL, &imguiRTV);
-  
+
   D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
   ZeroMemory(&srvDesc, sizeof(srvDesc));
   srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -299,7 +299,7 @@ InitDevice() {
   Model2.init(g_device, LD2);
   g_models.push_back(Model2);
 
-  
+
 
   // Initialize the view matrix
   XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, -30.0f);
@@ -308,10 +308,10 @@ InitDevice() {
   g_View = XMMatrixLookAtLH(Eye, At, Up);
 
   // Initialize the projection matrix
-  g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, 
-                                          g_window.m_width / (FLOAT)g_window.m_height, 
-                                          0.01f, 
-                                          100.0f);
+  g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4,
+    g_window.m_width / (FLOAT)g_window.m_height,
+    0.01f,
+    100.0f);
 
   g_cam.mView = XMMatrixTranspose(g_View);
   g_cam.mProjection = XMMatrixTranspose(g_Projection);
@@ -322,11 +322,11 @@ InitDevice() {
   g_transform.init();
   g_transform2.init();
   g_transform2.m_position.x = 1;
-  g_models[currentModel].setActive(true);
+  //g_models[currentModel].setActive(true);
   return S_OK;
 }
 
-void 
+void
 Input(float deltaTime) {
   if (GetAsyncKeyState('W') & 0x8000) {
     // move object forward
@@ -364,7 +364,7 @@ Input(float deltaTime) {
 
 void UI() {
   g_UI.update();
-  
+
   bool show_demo_window = true;
   ImGui::ShowDemoWindow(&show_demo_window);
   ImGui::Begin("Textures");
@@ -381,15 +381,38 @@ void UI() {
   bool Stage = true;
 
   g_UI.Renderer(g_window, imguiSRV);
-  
+  g_UI.output();
 
-  
+
+  int indent = 0;
   ImGui::Begin("Stage", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
-  
+  for (int i = 0; i < g_models.size(); i++)
+  {
+    std::string tmpObjName = "GameObject (" + std::to_string(i) + ")"; 
+    if (ImGui::CollapsingHeader(tmpObjName.c_str())) {
+    }
+    //ImGui::Indent(indent * 20.0f);
+    //
+    //if (ImGui::TreeNode(g_models[i].m_loadData.name.c_str()))
+    //{
+    //  // Dibujar los componentes del objeto
+      //DrawTransformComponent(model.GetTransform());
+      //DrawMeshComponent(model.GetMesh());
+    //
+    //  // Recorrer los hijos del objeto
+    //  //for (int i = 0; i < model.GetChildCount(); i++)
+    //  //{
+    //  //  //DrawObject(model.GetChild(i), indent + 1);
+    //  //}
+    //
+    //  ImGui::TreePop();
+    //}
+
+    //ImGui::Unindent(indent * 20.0f);
+  }
   ImGui::End();
 
-  ImGui::Begin("Properties", &Stage);
-  ImGui::End();
+  g_UI.Inspector(g_models, 0);
   //ImGui::Begin("Facebook Style Window");
 
   // Imagen de perfil
@@ -412,22 +435,22 @@ void UI() {
   //ImGui::End();
 }
 // Esta funcion esta encargada de actualizar la LOGICA del programa
-void 
+void
 update(float deltaTime) {
   Input(deltaTime);
 
   UI();
 
-  g_transform.update();
+  //g_transform.update();
 
   for (int i = 0; i < g_models.size(); i++)
   {
     std::string n = "Transform" + i;
     g_models[i].update(g_deviceContext, n.c_str());
-    g_models[i].ui(n.c_str());
+    //g_models[i].ui(n.c_str());
   }
-  
-  
+
+
   // Update Camera Buffers
   g_deviceContext.UpdateSubresource(g_Camera, 0, nullptr, &g_cam, 0, 0);
 }
@@ -435,7 +458,7 @@ update(float deltaTime) {
 //--------------------------------------------------------------------------------------
 // Clean up the objects we've created
 //--------------------------------------------------------------------------------------
-void 
+void
 destroy() {
   g_deviceContext.destroy();
   g_samplerLineal.destroy();
@@ -463,13 +486,13 @@ destroy() {
 }
 
 // Forward declare message handler from imgui_impl_win32.cpp
-extern IMGUI_IMPL_API LRESULT 
+extern IMGUI_IMPL_API LRESULT
 ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 //--------------------------------------------------------------------------------------
 // Called every time the application receives a message
 //--------------------------------------------------------------------------------------
-LRESULT CALLBACK 
+LRESULT CALLBACK
 WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
   if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
     return true;
@@ -529,7 +552,7 @@ WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
 //--------------------------------------------------------------------------------------
 // Render a frame
 //--------------------------------------------------------------------------------------
-void 
+void
 Render() {
   // Configurar la textura IMGUI como la vista de renderizado
   g_deviceContext.m_deviceContext->OMSetRenderTargets(1, &imguiRTV, NULL);
@@ -554,7 +577,7 @@ Render() {
     g_models[i].render(g_deviceContext, 0, 1);
     startSlot++;
   }
-  
+
   ID3D11ShaderResourceView* srvs[] = { imguiSRV };
   g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, srvs);
 

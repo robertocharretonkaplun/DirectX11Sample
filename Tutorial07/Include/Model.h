@@ -35,10 +35,9 @@ public:
   Transform
   getTransform();
 
-  bool 
-  isActive() const { return m_active; }
-  void 
-  setActive(bool active) { m_active = active; }
+  bool isActive() const { return m_active; }
+  void setActive(bool active) { m_active = active; }
+  void setStatic(bool _static) { m_static = _static; }
 
 public:
   VertexBuffer                        g_vertexBuffer;
@@ -46,5 +45,6 @@ public:
   ConstantBuffer                      g_modelBuffer;
   LoadData m_loadData;
   Transform m_transform;
-  bool m_active = false;
+  bool m_active = true;
+  bool m_static = false;
 };

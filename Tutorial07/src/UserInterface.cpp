@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "SwapChain.h"
 #include "Texture.h"
+#include "Model.h"
 
 UserInterface::UserInterface() {
 }
@@ -45,6 +46,9 @@ UserInterface::init(void* window, ID3D11Device* device, ID3D11DeviceContext* dev
   // Setup Platform/Renderer backends
   ImGui_ImplWin32_Init(window);
   ImGui_ImplDX11_Init(device, deviceContext);
+
+  // Init ToolTips
+  toolTipData();
 }
 
 void 
@@ -168,6 +172,92 @@ UserInterface::Renderer(Window window, ID3D11ShaderResourceView* renderTexture) 
   ImGui::Begin("Renderer", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
   ImTextureID texId = (ImTextureID)renderTexture;
   ImGui::Image(texId, ImVec2(window.m_width / 2, window.m_height / 2));
+  ImGui::End();
+}
+
+void 
+UserInterface::Inspector(std::vector<Model> & models, int index) {
+  static char post_text[1024] = "";
+  char inputValue[64] = "GameObject";
+  
+  
+  ImGui::Begin("Inspector");
+  // Agregar el checkbox a la izquierda del input text
+  ImGui::Checkbox("##s", &checkboxValue);
+  ToolTip(m_tooltips[1]);
+
+
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(475);
+  ImGui::InputText("##ObjectName", inputValue, IM_ARRAYSIZE(inputValue), 64);
+
+  // Agregar el texto "Static" a la derecha del input text
+  //ImGui::SameLine(0, ImGui::GetWindowWidth() - ImGui::GetCursorPosX() - 100);
+  ImGui::SameLine();
+  ImGui::Checkbox("Static", &checkboxValue2);
+  static const char* items[] = { "Item 1", "Item 2", "Item 3" };
+  
+  
+  static int currentItem = 0;
+  ImGui::Text("obj");
+  ToolTip(m_tooltips[0]);
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(258);
+  ImGui::Combo("##TagCombo", &currentItem, items, IM_ARRAYSIZE(items));
+  index = currentItem;
+  models[index].setActive(checkboxValue);
+  models[index].setStatic(checkboxValue2);
+  ImGui::SameLine();
+  ImGui::Text("Layer");
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(258);
+  ImGui::Combo("##LayerCombo", &currentItem, items, IM_ARRAYSIZE(items));
+
+
+  ImGui::Separator();
+  // Transform Component
+  ImGui::SetNextItemWidth(200);
+  
+  if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+    models[index].m_transform.ui_noWindow("");
+
+  }
+  
+    
+  ImGui::Separator();
+  // Mesh Component
+  if (ImGui::CollapsingHeader("Static Mesh", ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::Text("Mesh: ");
+    ImGui::SameLine();
+    static char str0[128] = "Hello, world!";
+    ImGui::InputText("##Input", models[index].m_loadData.name.data(), IM_ARRAYSIZE(str0));
+    ImGui::Text("Vertices: ");
+    ImGui::SameLine();
+    ImGui::Text(std::to_string(models[index].m_loadData.numVertex).c_str());
+    ImGui::Text("Indices: ");
+    ImGui::SameLine();
+    ImGui::Text(std::to_string(models[index].m_loadData.numIndex).c_str());
+    ImGui::Text("VERTICES");
+    if (ImGui::Button("Load Vertex Data")) {
+      std::string vertexPositions;
+      for (int i = 0; i < models[index].m_loadData.vertex.size(); i++) {
+        vertexPositions += "(" + 
+          std::to_string(models[index].m_loadData.vertex[i].Pos.x) + ", " +
+          std::to_string(models[index].m_loadData.vertex[i].Pos.y) + ", " +
+          std::to_string(models[index].m_loadData.vertex[i].Pos.z) + ") \n ";
+      }
+    }
+
+
+  }
+  ImGui::Separator();
+  ImGui::End();
+}
+
+void 
+UserInterface::output() {
+  bool Stage = true;
+  ImGui::Begin("Output", &Stage, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
   ImGui::End();
 }
 
@@ -395,4 +485,41 @@ UserInterface::visualStudioStyle() {
   colors[ImGuiCol_ModalWindowDimBg] = discord_darker_gray;
 
 
+}
+
+void 
+UserInterface::ToolTip(std::string icon, std::string tip) {
+  ImGui::SameLine();
+  ImGui::Text(icon.c_str());
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(tip.c_str());
+  }
+}
+
+void 
+UserInterface::ToolTip(std::string tip) {
+  if (ImGui::IsItemHovered())
+  {
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(tip.c_str());
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
+}
+
+void 
+UserInterface::toolTipData() {
+  // ToolTip #1: Information about the Gameobject selector in the Inspector.
+  m_tooltips.push_back(
+    "You can change the current GameObject that is active to be used in the Inspector. \n"
+    "\n"
+    "NOTE:\n"
+    "* This feature is WIP consider that it's possible that some things might not work correctly.\n");
+  // ToolTip #2: Information about the render state of the GameObject in the Inspector.
+  m_tooltips.push_back(
+    "You can change the drawing state of the GameObject by activating or deactivating the checkbox. \n"
+    "\n"
+    "NOTE:\n"
+    "* This feature is WIP consider that it's possible that some things might not work correctly.\n");
 }

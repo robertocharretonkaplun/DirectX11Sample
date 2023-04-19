@@ -8,6 +8,7 @@
 class Window;
 class SwapChain;
 class Texture;
+class Model;
 
 class 
 UserInterface {
@@ -40,6 +41,12 @@ public:
   Renderer(Window window, ID3D11ShaderResourceView* renderTexture);
 
   void
+  Inspector(std::vector<Model> & models, int index);
+
+  void
+  output();
+
+  void
   darkStyle();
   
   void
@@ -47,6 +54,17 @@ public:
 
   void
   visualStudioStyle();
-private:
 
+  void
+  ToolTip(std::string icon, std::string tip);
+  void
+  ToolTip( std::string tip);
+
+  void
+  toolTipData();
+private:
+  bool checkboxValue = true;
+  bool checkboxValue2 = false;
+  std::vector<const char*> m_objectsNames;
+  std::vector<const char*> m_tooltips;
 };
